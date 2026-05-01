@@ -43,9 +43,6 @@ cloudinary.config({
 });
 
 
-// Data sanitization against NoSQL injection
-app.use(mongoSanitize({ allowDots: true, replaceWith: '_' }));
-
 // Routes
 app.use('/api', router);
 app.use(errorMiddleware);

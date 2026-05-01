@@ -2,11 +2,30 @@ import Category from '../models/category.model';
 
 
 export const createCategory = async (data: any) => {
-    const existing = await Category.findOne({ name: data.name });
+
+    const name = data.name.trim().toLowerCase();
+    const code = name
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+
+    const existing = await Category.findOne({
+        $or: [
+            { name: { $regex: `^${name}$`} },
+            { code },
+        ],
+    });
     if (existing) {
         throw new Error("Category already exists");
     }
-    return await Category.create(data);
+    try {
+        return await Category.create(data);
+    } catch (err: any) {
+        if (err.code === 11000) {
+            throw new Error("Category code already exists");
+        }
+        throw err;
+    }
 };
 
 export const getAllCategories = async () => {
