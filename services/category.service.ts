@@ -29,7 +29,7 @@ export const createCategory = async (data: any) => {
 };
 
 export const getAllCategories = async () => {
-    return await Category.find({ isActive: true }).sort({ createdAt: -1 });
+    return await Category.find({ isActive: true }).sort({ createdAt: 1 });
 };
 
 export const getCategoryById = async (id: string) => {

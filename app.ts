@@ -1,7 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import mongoSanitize from 'express-mongo-sanitize';
 import router from './router';
 import { errorMiddleware, sendResponse } from './utility/response-utility';
 import cookieParser from 'cookie-parser';
@@ -19,7 +18,7 @@ app.use(cookieParser());
 // File upload middleware
 app.use(
     fileUpload({
-        useTempFiles: true,
+        useTempFiles: true
     })
 );
 
@@ -31,7 +30,8 @@ if (process.env.NODE_ENV === 'development') {
 // Enable CORS
 app.use(
     cors({
-        origin: '*',
+        origin: "http://localhost:3000",
+        credentials: true,
     })
 );
 
@@ -45,11 +45,12 @@ cloudinary.config({
 
 // Routes
 app.use('/api', router);
-app.use(errorMiddleware);
 
 // Handle undefined routes
 app.use((req: Request, res: Response) => {
     sendResponse(res, 404, 'fail', `Can't find ${req.originalUrl} on this server!`);
 });
+
+app.use(errorMiddleware);
 
 export default app;

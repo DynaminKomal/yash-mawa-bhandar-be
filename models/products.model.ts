@@ -1,30 +1,17 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IVariant {
-    name: string;          // e.g. "500ml", "1kg"
-    price: number;
-    stock: number;
-}
-
 export interface IProduct extends Document {
     name: string;
+    code: string;
     description?: string;
-    category: string;
+    category: mongoose.Types.ObjectId;
     images: string[];
-    variants: IVariant[];
+    price: number;
+    inStock: boolean;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
-
-const variantSchema = new Schema<IVariant>(
-    {
-        name: { type: String, required: true },
-        price: { type: Number, required: true },
-        stock: { type: Number, default: 0 },
-    },
-    { _id: false }
-);
 
 const productSchema = new Schema<IProduct>(
     {
@@ -34,25 +21,30 @@ const productSchema = new Schema<IProduct>(
             trim: true,
         },
 
-        description: {
+        code: {
             type: String,
+            unique: true,
+            lowercase: true,
         },
+
+        description: String,
 
         category: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
             required: true,
-            // Example: "milk", "ghee", "paneer"
         },
 
-        images: [
-            {
-                type: String,
-            },
-        ],
+        images: [String],
 
-        variants: {
-            type: [variantSchema],
-            validate: [(val: IVariant[]) => val.length > 0, "At least one variant required"],
+        price: {
+            type: Number,
+            required: true,
+        },
+
+        inStock: {
+            type: Boolean,
+            default: true,
         },
 
         isActive: {
@@ -62,5 +54,15 @@ const productSchema = new Schema<IProduct>(
     },
     { timestamps: true }
 );
+
+
+productSchema.pre("save", function (this: IProduct) {
+    if (!this.code && this.name) {
+        this.code = this.name
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-]/g, "");
+    }
+});
 
 export default mongoose.model<IProduct>("Product", productSchema);
