@@ -1,18 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import { createProductSchema } from "./product.config";
+import { ZodSchema } from "zod";
 
-export const validateCreateProduct = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    try {
-        if (!req.body || Object.keys(req.body).length === 0) {
-            throw new Error("Body is required");
+export const validate = (schema: ZodSchema, source: "body" | "query" | "params") =>
+    (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const data = schema.parse(req[source]);
+
+            if (source === "body") req.validatedBody = data;
+            if (source === "query") req.validatedQuery = data;
+            if (source === "params") req.validatedParams = data;
+
+            next();
+        } catch (err) {
+            next(err);
         }
-        req.validatedBody = createProductSchema.parse(req.body);
-        next();
-    } catch (err) {
-        next(err);
-    }
-};
+    };
