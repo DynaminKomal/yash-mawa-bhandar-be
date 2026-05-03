@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { validate } from '../validator/product/product-validator';
+import { validate } from '../validator/validate';
 import { createProductController, getProductList, getProduct, updateProduct, deleteProduct } from '../controllers/product.controller';
 import { createProductSchema, getProductListSchema, idParamSchema, updateProductSchema } from '../validator/product/product.config';
 
