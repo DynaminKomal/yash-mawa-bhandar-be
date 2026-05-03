@@ -1,13 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import { stringify } from 'flatted';
+import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
 
-// Custom error interface
 interface AppError extends Error {
     statusCode?: number;
-    name: string;
 }
 
-// Utility function to send responses
 export const sendResponse = (
     res: Response,
     statusCode: number,
@@ -19,64 +16,43 @@ export const sendResponse = (
         statusCode,
         status,
         message,
-        length: data === null ? 0 : data.length,
+        length: Array.isArray(data) ? data.length : data ? 1 : 0,
         data,
     });
 };
 
-// Centralized error handler
-export const handleError = (res: Response, err: AppError): void => {
-    const statusCode = err.statusCode || 400;
-
-    const errorDetails =
-        process.env.NODE_ENV === 'production'
-            ? 'An unexpected error occurred.'
-            : stringify(err);
-
-    if (process.env.NODE_ENV === 'production') {
-        if (err.name === 'TokenExpiredError') {
-            sendResponse(res, statusCode, 'fail', 'Token Expired. Please log in again.');
-        } else if (err.name === 'JsonWebTokenError') {
-            sendResponse(res, statusCode, 'fail', 'Invalid Token. Please log in again.');
-        } else {
-            sendResponse(res, statusCode, 'fail', errorDetails);
-        }
-    } else {
-        // Development mode
-        if (err.name === 'TokenExpiredError') {
-            sendResponse(
-                res,
-                statusCode,
-                'fail',
-                `Token Expired. Please log in again. Details: ${err.message}`
-            );
-        } else if (err.name === 'JsonWebTokenError') {
-            sendResponse(
-                res,
-                statusCode,
-                'fail',
-                `Invalid Token. Please log in again. Details: ${err.message}`
-            );
-        } else if (err.name === 'ValidationError') {
-            sendResponse(res, statusCode, 'fail', err.message);
-        } else {
-            sendResponse(
-                res,
-                statusCode,
-                'fail',
-                `An unexpected error occurred. Details: ${errorDetails}`
-            );
-        }
-    }
-};
-
-// Global async error wrapper
 export const grasp =
-    (
-        cb: (req: Request, res: Response, next: NextFunction) => Promise<any>
+    <
+        P = any,
+        ResBody = any,
+        ReqBody = any,
+        ReqQuery = any
+    >(
+        cb: (
+            req: Request<P, ResBody, ReqBody, ReqQuery>,
+            res: Response,
+            next: NextFunction
+        ) => Promise<any>
     ) =>
         (req: Request, res: Response, next: NextFunction): void => {
-            cb(req, res, next).catch((err: AppError) => {
-                handleError(res, err);
-            });
+            cb(req as any, res, next).catch(next);
         };
+
+export const errorMiddleware = (
+    err: AppError,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const statusCode = err.statusCode || 400;
+
+    let message = "Something went wrong";
+
+    if (err instanceof ZodError) {
+        message = err.issues[0]?.message || "Validation error";
+    } else if (err instanceof Error) {
+        message = err.message;
+    }
+
+    sendResponse(res, statusCode, "fail", message);
+};

@@ -28,9 +28,12 @@
     "express-fileupload": "^1.5.2",
     "express-mongo-sanitize": "^2.2.0",
     "flatted": "^3.4.2",
+    "joi": "^18.1.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "nodemailer": "^8.0.7",
+    "zod": "^4.4.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
@@ -39,6 +42,7 @@
     "@types/express-fileupload": "^1.5.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.6.0",
+    "@types/nodemailer": "^8.0.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"

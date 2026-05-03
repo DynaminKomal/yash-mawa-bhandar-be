@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import app from './app';
 
 // Load environment variables
 dotenv.config();
+
+import mongoose from 'mongoose';
+import app from './app';
 
 // Validate required env variables
 const {
