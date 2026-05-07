@@ -29,3 +29,21 @@ export const createUserSchema = z.object({
     role: z.string().optional(),
 
 }).strict();
+
+
+
+export const loginSchema = z.object({
+    email: z
+        .string({ error: "Email is required" })
+        .email("Invalid email format"),
+    password: z
+        .string({ error: "Password is required" })
+        .trim()
+        .min(1, "Password cannot be empty")
+        .min(8, "Password must be at least 8 characters long")
+        .regex(
+            /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/,
+            "Password must contain uppercase, lowercase, and a number"
+        )
+
+}).strict();
