@@ -7,8 +7,6 @@ export interface IUser extends Document {
     phoneNumber: string;
     password: string;
 
-    deliveryAddress: string;
-
     role: "customer" | "admin";
 
     isActive: boolean;
@@ -44,11 +42,6 @@ const userSchema = new Schema(
             type: String,
             required: true,
             select: false,
-        },
-
-        deliveryAddress: {
-            type: String,
-            required: true,
         },
 
         role: {

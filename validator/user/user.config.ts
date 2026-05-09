@@ -1,49 +1,89 @@
 import { z } from "zod";
 
+export const addressSchema = z.object({
+    addressLine1: z
+        .string()
+        .trim()
+        .min(3, "Address Line 1 is required"),
+
+    addressLine2: z
+        .string()
+        .trim()
+        .optional(),
+
+    city: z
+        .string()
+        .trim()
+        .min(2, "City is required"),
+
+    state: z
+        .string()
+        .trim()
+        .min(2, "State is required"),
+
+    pincode: z
+        .string()
+        .trim()
+        .regex(/^[0-9]{6}$/, "Pincode must be 6 digits"),
+
+    landmark: z
+        .string()
+        .trim()
+        .optional(),
+
+    addressType: z.enum(["home", "office", "other"]).optional(),
+});
+
 export const createUserSchema = z.object({
     userName: z
-        .string({ error: "Name is required" })
-        .min(1, "Name cannot be empty")
-        .trim(),
+        .string()
+        .trim()
+        .min(3, "Username must be at least 3 characters"),
 
     phoneNumber: z
-        .string({ error: "Phone Number is required" })
+        .string()
         .trim()
         .regex(/^\d{10}$/, "Phone Number must be exactly 10 digits"),
+
     email: z
-        .string({ error: "Email is required" })
-        .email("Invalid email format"),
-    password: z
-        .string({ error: "Password is required" })
+        .string()
         .trim()
-        .min(1, "Password cannot be empty")
+        .email("Invalid email format"),
+
+    password: z
+        .string()
+        .trim()
         .min(8, "Password must be at least 8 characters long")
         .regex(
             /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/,
             "Password must contain uppercase, lowercase, and a number"
-        )
-    ,
-    deliveryAddress: z
-        .string({ error: "Delivery Address is required" })
-        .min(1, "Delivery Address cannot be empty"),
-    role: z.string().optional(),
+        ),
 
+    address: z.object(addressSchema.shape, {
+        error: "Address is required",
+    }),
+
+    role: z
+        .enum(["customer", "admin"])
+        .optional(),
 }).strict();
 
-
+export type ICreateUser = z.infer<typeof createUserSchema>;
 
 export const loginSchema = z.object({
     email: z
-        .string({ error: "Email is required" })
-        .email("Invalid email format"),
-    password: z
-        .string({ error: "Password is required" })
+        .string()
         .trim()
-        .min(1, "Password cannot be empty")
+        .email("Invalid email format"),
+
+    password: z
+        .string()
+        .trim()
         .min(8, "Password must be at least 8 characters long")
         .regex(
             /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/,
             "Password must contain uppercase, lowercase, and a number"
-        )
-
+        ),
 }).strict();
+
+export type ILogin = z.infer<typeof loginSchema>;
