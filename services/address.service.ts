@@ -19,15 +19,15 @@ export const createAddress = async (
 
         const address = await Address.create({
             user: userId,
-            fullName: existingUser.userName,
-            phoneNumber: existingUser.phoneNumber,
-            addressLine1: data.addressLine1,
-            addressLine2: data.addressLine2,
-            city: data.city,
-            state: data.state,
-            pincode: data.pincode,
-            landmark: data.landmark,
-            addressType: data.addressType,
+            fullName: data.fullName,
+            phoneNumber: data.phoneNumber,
+            addressLine1: data.address.addressLine1,
+            addressLine2: data.address.addressLine2,
+            city: data.address.city,
+            state: data.address.state,
+            pincode: data.address.pincode,
+            landmark: data.address.landmark,
+            addressType: data.address.addressType,
             isDefault: true,
         });
 
@@ -46,7 +46,10 @@ export const getAllAddress = async (userId: string) => {
             throw new Error("User not found");
         }
         const addresses = await Address.find({ user: userId })
-            .sort({ createdAt: -1 });
+            .sort({
+                // isDefault: -1,
+                createdAt: -1
+            });
 
         return addresses;
     }

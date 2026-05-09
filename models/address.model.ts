@@ -15,7 +15,7 @@ export interface IAddress extends Document {
 
     landmark?: string;
 
-    addressType: "home" | "office" | "other";
+    addressType: "home" | "work" | "other";
 
     isDefault: boolean;
 }
@@ -64,7 +64,7 @@ const addressSchema = new Schema<IAddress>(
 
         addressType: {
             type: String,
-            enum: ["home", "office", "other"],
+            enum: ["home", "work", "other"],
             default: "home",
         },
 

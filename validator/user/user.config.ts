@@ -31,8 +31,25 @@ export const addressSchema = z.object({
         .trim()
         .optional(),
 
-    addressType: z.enum(["home", "office", "other"]).optional(),
+    addressType: z.enum(["home", "work", "other"]).optional(),
 });
+
+export const createNewAddress = z.object({
+    fullName: z
+        .string()
+        .trim()
+        .min(3, "Username must be at least 3 characters"),
+
+    phoneNumber: z
+        .string()
+        .trim()
+        .regex(/^\d{10}$/, "Phone Number must be exactly 10 digits"),
+
+    address: z.object(addressSchema.shape, {
+        error: "Address is required",
+    }),
+
+}).strict();
 
 export const createUserSchema = z.object({
     userName: z
