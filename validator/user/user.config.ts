@@ -69,12 +69,19 @@ export const createUserSchema = z.object({
 }).strict();
 
 export type ICreateUser = z.infer<typeof createUserSchema>;
-
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^\d{10}$/;
 export const loginSchema = z.object({
     email: z
         .string()
         .trim()
-        .email("Invalid email format"),
+        .min(1, "Email or phone is required")
+        .refine(
+            (val) => emailRegex.test(val) || phoneRegex.test(val),
+            {
+                message: "Enter valid email or 10-digit phone number",
+            }
+        ),
 
     password: z
         .string()

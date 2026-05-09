@@ -48,7 +48,12 @@ export const login = async (data: any) => {
     try {
         const { email, password } = data;
 
-        const existingUser = await Users.findOne({ email }).select("+password");
+        const existingUser = await Users.findOne({
+            $or: [
+                { email },
+                { phoneNumber: email }
+            ]
+        }).select("+password");
 
         if (!existingUser) {
             throw new Error("User does not exist");
