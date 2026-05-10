@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UnitType } from "../../types/unitType.enum";
 
 export const createProductSchema = z.object({
     name: z
@@ -23,6 +24,13 @@ export const createProductSchema = z.object({
             .refine((val) => !isNaN(val), { message: "Price must be a valid number" })
             .refine((val) => val > 0, { message: "Price must be greater than 0" })
     ),
+    unitType: z.enum([
+        UnitType.KG,
+        UnitType.PACK,
+        UnitType.LITER,
+    ], {
+        message: "Unit type must be kg, pack, or liter",
+    }),
 
     inStock: z
         .coerce.boolean()

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { UnitType } from "../types/unitType.enum";
 
 export interface IProduct extends Document {
     name: string;
@@ -7,6 +8,7 @@ export interface IProduct extends Document {
     category: mongoose.Types.ObjectId;
     images: string[];
     price: number;
+    unitType: UnitType;
     inStock: boolean;
     isActive: boolean;
     createdAt: Date;
@@ -34,14 +36,16 @@ const productSchema = new Schema<IProduct>(
             ref: "Category",
             required: true,
         },
-
+        unitType: {
+            type: String,
+            enum: Object.values(UnitType),
+            default: UnitType.KG,
+        },
         images: [String],
-
         price: {
             type: Number,
             required: true,
         },
-
         inStock: {
             type: Boolean,
             default: true,
@@ -55,8 +59,7 @@ const productSchema = new Schema<IProduct>(
     { timestamps: true }
 );
 
-
-productSchema.pre("save", function (this: IProduct) {
+productSchema.pre("save", function () {
     if (!this.code && this.name) {
         this.code = this.name
             .toLowerCase()
