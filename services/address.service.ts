@@ -32,7 +32,7 @@ export const createAddress = async (
         });
 
         return address;
-    } catch (error) {
+    } catch (error) {   
         throw error;
     }
 };

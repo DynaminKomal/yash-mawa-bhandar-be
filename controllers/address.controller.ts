@@ -52,7 +52,7 @@ export const deleteAddressById = grasp(async (req, res) => {
         200,
         "success",
         "Address deleted successfully",
-        deletedAddress
+        null
     );
 });
 
