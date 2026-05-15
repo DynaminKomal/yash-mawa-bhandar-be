@@ -8,3 +8,10 @@ export const createContactController = grasp(async (req: Request, res: Response)
 
     sendResponse(res, 201, "success", "Contact created successfully", contact);
 });
+
+export const getContactController = grasp(async (req: Request, res: Response) => {
+
+    const contact = await contactService.getAllContacts(req.validatedQuery);
+
+    sendResponse(res, 201, "success", "Contact List successfully", contact);
+});

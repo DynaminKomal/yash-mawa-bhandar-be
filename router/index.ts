@@ -7,6 +7,7 @@ import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
 import addressRoutes from "./address.routes";
 import cartRoutes from "./cart.routes";
+import orderRoutes from "./order.routes";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/address", addressRoutes);
 router.use("/cart", cartRoutes);
+router.use("/order", orderRoutes);
 
 export default router;

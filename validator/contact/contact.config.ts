@@ -25,3 +25,24 @@ export const createContactSchema = z.object({
         .min(1, "Message cannot be empty"),
     rating: z.string().optional(),
 }).strict();
+
+
+export const contactQuerySchema = z.object({
+    subject: z
+        .string()
+        .optional(),
+
+    rating: z
+        .string()
+        .optional(),
+
+    page: z
+        .string()
+        .regex(/^\d+$/, "Page must be a number")
+        .optional(),
+
+    limit: z
+        .string()
+        .regex(/^\d+$/, "Limit must be a number")
+        .optional(),
+}).strict();
