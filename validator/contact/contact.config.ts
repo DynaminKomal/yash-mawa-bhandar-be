@@ -23,7 +23,7 @@ export const createContactSchema = z.object({
     message: z
         .string({ error: "Message is required" })
         .min(1, "Message cannot be empty"),
-    rating: z.string().optional(),
+    rating: z.number().optional(),
 }).strict();
 
 

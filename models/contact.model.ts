@@ -7,7 +7,7 @@ export interface IContact extends Document {
     deliveryArea: string;
     subject: string;
     message: string;
-    rating?: string;
+    rating?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -20,7 +20,7 @@ const contactSchema = new Schema(
         deliveryArea: { type: String, required: true },
         subject: { type: String, required: true },
         message: { type: String, required: true },
-        rating: String,
+        rating: Number,
     },
     { timestamps: true }
 );
