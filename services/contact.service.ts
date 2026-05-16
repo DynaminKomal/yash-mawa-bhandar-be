@@ -30,7 +30,7 @@ export const getAllContacts = async ({
             filter.subject = subject;
         }
         if (rating) {
-            filter.rating = rating;
+            filter.rating = { $gte: rating };
         }
 
         const skip = (page - 1) * limit;
@@ -44,7 +44,7 @@ export const getAllContacts = async ({
         const total = await contactModel.countDocuments(filter);
 
         return {
-            data: contacts,
+            items: contacts,
             total,
             currentPage: page,
             totalPages: Math.ceil(total / limit),

@@ -26,7 +26,7 @@ export const updateCartSchema = z.object({
         /^[0-9a-fA-F]{24}$/,
         "Invalid product ObjectId"
     ),
-    quantity: z.number().int().positive("Quantity must be > 0"),
+    quantity: z.number().int().nonnegative("Quantity cannot be negative")
 
 }).strict();
 
