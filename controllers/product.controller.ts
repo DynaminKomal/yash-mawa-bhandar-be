@@ -54,15 +54,69 @@ export const getProduct = grasp(async (req: Request<IdParams>, res) => {
     sendResponse(res, 200, "success", "Product fetched", product);
 });
 
-export const updateProduct = grasp(async (req: Request<IdParams>, res) => {
-    const { id } = req.validatedParams;
-    const product = await productService.updateProductById(
-        id,
-        req.validatedBody
-    );
+export const updateProduct = grasp(
+    async (req: Request<IdParams>, res: Response) => {
+        const { id } = req.validatedParams;
 
-    sendResponse(res, 200, "success", "Product updated", product);
-});
+        const existingProduct = await Product.findById(id);
+
+        if (!existingProduct) {
+            throw new Error("Product not found");
+        }
+
+        let imageUrls: string[] | undefined;
+
+        if (req.files && req.files.image) {
+            const files: UploadedFile[] = Array.isArray(req.files.image)
+                ? req.files.image
+                : [req.files.image];
+
+            if (existingProduct.images?.length) {
+                await Promise.all(
+                    existingProduct.images.map((url) => {
+                        const publicId = extractPublicId(url);
+
+                        return cloudinary.uploader.destroy(publicId);
+                    })
+                );
+            }
+
+            const uploads = await Promise.all(
+                files.map((file: UploadedFile) =>
+                    cloudinary.uploader.upload(file.tempFilePath, {
+                        folder: "yash-mawa-bhandar/products",
+                        public_id: file.name
+                            .replace(/\.(jpg|jpeg|png)$/i, ""),
+                    })
+                )
+            );
+
+            imageUrls = uploads.map((img) => img.secure_url);
+        }
+
+        const updateData: any = {
+            ...req.validatedBody,
+        };
+
+        if (imageUrls) {
+            updateData.images = imageUrls;
+        }
+
+        const product = await productService.updateProductById(
+            id,
+            updateData
+        );
+
+        sendResponse(res, 200, "success", "Product updated", product);
+    }
+);
+
+const extractPublicId = (url: string) => {
+    const parts = url.split("/");
+    const fileName = parts[parts.length - 1];
+
+    return `yash-mawa-bhandar/products/${fileName.split(".")[0]}`;
+};
 
 export const deleteProduct = grasp(async (req: Request<IdParams>, res) => {
     const { id } = req.validatedParams;
