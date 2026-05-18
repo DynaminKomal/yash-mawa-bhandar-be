@@ -111,3 +111,13 @@ export const loginSchema = z.object({
 }).strict();
 
 export type ILogin = z.infer<typeof loginSchema>;
+
+export const updateUserSchema = z.object({
+    userName: z.string().min(3).trim().optional(),
+    email: z.string().optional(),
+    profile: z.string().optional(),
+    gender: z.enum(["male", "female", "other"], {
+        message: "Gender must be male, female, or other",
+    }),
+    dateOfBirth: z.coerce.date().optional(),
+}).partial().strict();

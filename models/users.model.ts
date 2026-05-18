@@ -6,12 +6,12 @@ export interface IUser extends Document {
     email: string;
     phoneNumber: string;
     password: string;
-
+    profile: string;
+    gender?: "male" | "female" | "other";
+    dateOfBirth?: Date;
     role: "customer" | "admin";
-
     isActive: boolean;
     isVerified: boolean;
-
     createdAt: Date;
     updatedAt: Date;
 
@@ -37,7 +37,18 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
+        profile: {
+            type: String,
+            default: "",
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "other"],
+        },
 
+        dateOfBirth: {
+            type: Date,
+        },
         password: {
             type: String,
             required: true,
