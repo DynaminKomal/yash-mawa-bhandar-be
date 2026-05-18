@@ -53,3 +53,18 @@ export const getUserProfile = async (userId: string) => {
 
     return user;
 };
+
+
+export const deactivateUser = async (userId: string) => {
+    const user = await Users.findByIdAndUpdate(
+        userId,
+        { isActive: false },
+        { new: true }
+    ).select("-password");
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return user;
+};

@@ -24,7 +24,7 @@ export const updateUserProfileController = grasp(
             200,
             "success",
             "User profile updated successfully",
-            user
+            null
         );
     }
 );
@@ -32,9 +32,14 @@ export const updateUserProfileController = grasp(
 
 export const getUserProfileController = grasp(
     async (req: AuthRequest, res: Response) => {
-
         const user = await userService.getUserProfile(req.user._id);
-
         sendResponse(res, 201, "success", "User profile fetched successfully", user);
+    }
+);
+
+export const deactivateUserController = grasp(
+    async (req: AuthRequest, res: Response) => {
+        await userService.deactivateUser(req.user._id);
+        sendResponse(res, 201, "success", "User deleted successfully", null);
     }
 );

@@ -13,6 +13,13 @@ export const signup = async (data: any) => {
         const existingUser = await Users.findOne({ email });
 
         if (existingUser) {
+
+            if (!existingUser.isActive) {
+                throw new Error(
+                    "Account is deactivated. Please contact adminstrator"
+                );
+            }
+
             throw new Error("User already exists");
         }
 
@@ -57,6 +64,10 @@ export const login = async (data: any) => {
 
         if (!existingUser) {
             throw new Error("User does not exist");
+        }
+
+        if (!existingUser.isActive) {
+            throw new Error("Your account is deactivated. Please contact admin.");
         }
 
         const isPasswordCorrect =
