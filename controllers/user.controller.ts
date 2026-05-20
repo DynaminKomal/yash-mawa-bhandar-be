@@ -43,3 +43,14 @@ export const deactivateUserController = grasp(
         sendResponse(res, 201, "success", "User deleted successfully", null);
     }
 );
+
+export const updatePasswordController = grasp(
+    async (req: AuthRequest, res: Response) => {
+        const payload = {
+            ...req.validatedBody,
+            user: req.user._id,
+        }
+        await userService.updatePassword(payload);
+        sendResponse(res, 201, "success", "Password updated successfully", null);
+    }
+);

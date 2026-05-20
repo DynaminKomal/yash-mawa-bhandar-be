@@ -121,3 +121,11 @@ export const updateUserSchema = z.object({
     }),
     dateOfBirth: z.coerce.date().optional(),
 }).partial().strict();
+
+export const passwordSchema = z
+    .object({
+        oldPassword: z.string().min(8, "Old password required"),
+        newPassword: z
+            .string()
+            .min(8, "Password must be at least 8 characters")
+    }).strict();
