@@ -53,7 +53,7 @@ export const createCartItems = async (data: any) => {
 
 export const getCartForUser = async (userId: string) => {
     const cart = await Cart.findOne({ user: userId })
-        .populate("items.product", "name price image unitType");
+        .populate("items.product", "name price images unitType");
 
     if (!cart) {
         return {
@@ -63,15 +63,18 @@ export const getCartForUser = async (userId: string) => {
     }
 
     return {
-        items: cart.items.map((item: any) => ({
-            id: item.product._id,
-            name: item.product.name,
-            price: item.price,
-            unitType: item.unitType,
-            quantity: item.quantity,
-            weightInGram: item.unitType === 'pack' ? (1 * item.quantity) : (1000 * item.quantity)
+        items: cart.items.map((item: any) => {
+            return {
+                id: item.product._id,
+                name: item.product.name,
+                image: item.product.images?.[0] || "",
+                price: item.price,
+                unitType: item.unitType,
+                quantity: item.quantity,
+                weightInGram: item.unitType === 'pack' ? (1 * item.quantity) : (1000 * item.quantity)
 
-        })),
+            }
+        }),
         totalAmount: cart.totalAmount,
     };
 };
