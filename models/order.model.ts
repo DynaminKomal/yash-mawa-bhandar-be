@@ -1,35 +1,69 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { orderStatusEnum, paymentMethodEnum, paymentStatusEnum } from "../types/order.enum";
+import {
+    orderStatusEnum,
+    paymentMethodEnum,
+    paymentStatusEnum,
+} from "../types/order.enum";
+
+export interface IOrderItem {
+    product: mongoose.Types.ObjectId;
+
+    name: string;
+
+    image: string;
+
+    quantity: number;
+
+    unitType: string;
+
+    price: number;
+
+    totalPrice: number;
+}
 
 export interface IOrder extends Document {
     user: mongoose.Types.ObjectId;
-    cartId: mongoose.Types.ObjectId;
+
+    items: IOrderItem[];
+
     deliveryAddress: mongoose.Types.ObjectId;
-    deliveryDate: string;
-    deliveryTimeSlot: string;
+
+    deliverySlot: {
+        date: string;
+        time: string;
+    };
 
     subtotal: number;
+
     gstAmount: number;
+
     shippingCharge: number;
+
     finalAmount: number;
+
     paymentMethod: paymentMethodEnum;
+
     paymentStatus: paymentStatusEnum;
 
     orderStatus: orderStatusEnum;
+
+    transactionId?: string;
+
+    razorpayOrderId?: string;
+
+    razorpayPaymentId?: string;
+
+    razorpaySignature?: string;
+
+    paidAt?: Date;
+
+    deliveredAt?: Date;
+
+    cancelledAt?: Date;
+
+    cancelReason?: string;
 }
 
-
-const paymentMethodValues = Object.values(paymentMethodEnum).filter(
-    (v) => typeof v === "number"
-);
-
-const paymentStatusValues = Object.values(paymentStatusEnum).filter(
-    (v) => typeof v === "number"
-);
-
-const orderStatusdValues = Object.values(orderStatusEnum).filter(
-    (v) => typeof v === "number"
-);
 const orderSchema = new Schema<IOrder>(
     {
         user: {
@@ -37,11 +71,28 @@ const orderSchema = new Schema<IOrder>(
             ref: "User",
             required: true,
         },
-        cartId: {
-            type: Schema.Types.ObjectId,
-            ref: "Cart",
-            required: true,
-        },
+
+        items: [
+            {
+                product: {
+                    type: Schema.Types.ObjectId,
+                    ref: "Product",
+                    required: true,
+                },
+
+                name: String,
+
+                image: String,
+
+                quantity: Number,
+
+                unitType: String,
+
+                price: Number,
+
+                totalPrice: Number,
+            },
+        ],
 
         deliveryAddress: {
             type: Schema.Types.ObjectId,
@@ -49,58 +100,47 @@ const orderSchema = new Schema<IOrder>(
             required: true,
         },
 
-        deliveryDate: {
-            type: String,
-            required: true,
+        deliverySlot: {
+            date: String,
+            time: String,
         },
 
-        deliveryTimeSlot: {
-            type: String,
-            required: true,
-        },
+        subtotal: Number,
 
-        subtotal: {
-            type: Number,
-            required: true,
-        },
+        gstAmount: Number,
 
-        gstAmount: {
-            type: Number,
-            default: 0,
-        },
+        shippingCharge: Number,
 
-        shippingCharge: {
-            type: Number,
-            default: 0,
-        },
+        finalAmount: Number,
 
-        finalAmount: {
-            type: Number,
-            required: true,
-        },
+        paymentMethod: Number,
 
-        paymentMethod: {
-            type: Number,
-            enum: paymentMethodValues,
-            default: paymentMethodEnum.COD,
-        },
+        paymentStatus: Number,
 
-        paymentStatus: {
-            type: Number,
-            enum: paymentStatusValues,
-            default: paymentStatusEnum.PENDING,
-        },
+        orderStatus: Number,
 
-        orderStatus: {
-            type: Number,
-            enum: orderStatusdValues,
-            default: orderStatusEnum.PENDING,
-        },
+        transactionId: String,
+
+        razorpayOrderId: String,
+
+        razorpayPaymentId: String,
+
+        razorpaySignature: String,
+
+        paidAt: Date,
+
+        deliveredAt: Date,
+
+        cancelledAt: Date,
+
+        cancelReason: String,
     },
     {
         timestamps: true,
     }
 );
 
-export default mongoose.models.Order ||
-    mongoose.model<IOrder>("Order", orderSchema);
+export default mongoose.model<IOrder>(
+    "Order",
+    orderSchema
+);
