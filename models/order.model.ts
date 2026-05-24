@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Model, Document, Schema } from "mongoose";
 import {
     orderStatusEnum,
     paymentMethodEnum,
@@ -140,7 +140,6 @@ const orderSchema = new Schema<IOrder>(
     }
 );
 
-export default mongoose.model<IOrder>(
-    "Order",
-    orderSchema
-);
+
+const Order = (mongoose.models.Order || mongoose.model<IOrder>('Order', orderSchema)) as Model<IOrder>;
+export default Order;

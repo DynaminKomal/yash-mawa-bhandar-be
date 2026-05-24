@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Model, Document, Schema } from "mongoose";
 import { UnitType } from "../types/unitType.enum";
 
 export interface ICartItem {
@@ -65,5 +65,5 @@ const cartSchema = new Schema<ICart>(
     }
 );
 
-export default mongoose.models.Cart ||
-    mongoose.model<ICart>("Cart", cartSchema);
+const Cart = (mongoose.models.Cart || mongoose.model<ICart>('Cart', cartSchema)) as Model<ICart>;
+export default Cart;

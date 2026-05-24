@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Model, Schema, Document } from "mongoose";
 
 export interface IAddress extends Document {
     user: mongoose.Types.ObjectId;
@@ -78,8 +78,6 @@ const addressSchema = new Schema<IAddress>(
     }
 );
 
-const Address =
-    mongoose.models.Address ||
-    mongoose.model<IAddress>("Address", addressSchema);
+const Address = (mongoose.models.Address || mongoose.model<IAddress>('Address', addressSchema)) as Model<IAddress>;
 
 export default Address;

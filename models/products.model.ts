@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Model, Schema, Document } from "mongoose";
 import { UnitType } from "../types/unitType.enum";
 
 export interface IProduct extends Document {
@@ -68,4 +68,5 @@ productSchema.pre("save", function () {
     }
 });
 
-export default mongoose.model<IProduct>("Product", productSchema);
+const Product = (mongoose.models.Product || mongoose.model<IProduct>('Product', productSchema)) as Model<IProduct>;
+export default Product;

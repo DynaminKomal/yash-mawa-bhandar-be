@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Model, Schema, Document } from "mongoose";
 
 export interface IPlantVisit extends Document {
     userName: string;
@@ -45,4 +45,5 @@ plantVisitSchema.pre("save", function () {
     }
 });
 
-export default mongoose.model<IPlantVisit>("PlantVisit", plantVisitSchema);
+const PlantVisit = (mongoose.models.PlantVisit || mongoose.model<IPlantVisit>('PlantVisit', plantVisitSchema)) as Model<IPlantVisit>;
+export default PlantVisit;
