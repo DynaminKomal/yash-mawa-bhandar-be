@@ -32,7 +32,8 @@ app.use(
     cors({
         origin: [
             "http://localhost:3000",
-            "https://yashmawabhandar.com"
+            "https://www.yashmawabhandar.com",
+            "https://www.yashmawabhandar.com"
         ],
         credentials: true,
     })
