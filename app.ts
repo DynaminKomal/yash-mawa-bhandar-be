@@ -27,10 +27,23 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('tiny'));
 }
 
+const allowedOrigins = [
+    "http://localhost:3000",
+    "https://www.yashmawabhandar.com",
+    "https://yashmawabhandar.com"
+];
+
+
 // Enable CORS
 app.use(
     cors({
-        origin: "*",
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error(`Not allowed by CORS ${origin}`));
+            }
+        },
         credentials: true,
     })
 );
