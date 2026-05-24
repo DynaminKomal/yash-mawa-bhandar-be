@@ -33,7 +33,8 @@ app.use(
         origin: [
             "http://localhost:3000",
             "https://www.yashmawabhandar.com",
-            "https://www.yashmawabhandar.com"
+            "https://yashmawabhandar.com/",
+            "https://www.yashmawabhandar.com/"
         ],
         credentials: true,
     })
