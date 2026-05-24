@@ -1,4 +1,27 @@
 import { z } from "zod";
+import { UnitType } from "../../types/unitType.enum";
+import { UploadedFile } from "express-fileupload";
+
+const imageSchema = z
+    .custom<UploadedFile>((file) => !!file, {
+        message: "Image is required",
+    })
+    .refine(
+        (file) =>
+            [
+                "image/jpeg",
+                "image/jpg",
+                "image/png",
+                "image/webp",
+            ].includes(file.mimetype),
+        {
+            message:
+                "Only jpg, jpeg, png, webp images are allowed",
+        }
+    )
+    .refine((file) => file.size <= 2 * 1024 * 1024, {
+        message: "Image size must be less than 2MB",
+    });
 
 export const createProductSchema = z.object({
     name: z
@@ -23,6 +46,13 @@ export const createProductSchema = z.object({
             .refine((val) => !isNaN(val), { message: "Price must be a valid number" })
             .refine((val) => val > 0, { message: "Price must be greater than 0" })
     ),
+    unitType: z.enum([
+        UnitType.KG,
+        UnitType.PACK,
+        UnitType.LITER,
+    ], {
+        message: "Unit type must be kg, pack, or liter",
+    }),
 
     inStock: z
         .coerce.boolean()
@@ -42,9 +72,17 @@ export const updateProductSchema = z.object({
         (val) => (val === "" ? undefined : Number(val)),
         z.number().positive().optional()
     ),
+    image: imageSchema.optional(),
+    unitType: z.enum([
+        UnitType.KG,
+        UnitType.PACK,
+        UnitType.LITER,
+    ], {
+        message: "Unit type must be kg, pack, or liter",
+    }),
     inStock: z.coerce.boolean().optional(),
     isActive: z.coerce.boolean().optional(),
-}).strict();
+}).partial().strict();
 
 export const getProductListSchema = z.object({
     page: z.coerce.number().min(1).default(1),

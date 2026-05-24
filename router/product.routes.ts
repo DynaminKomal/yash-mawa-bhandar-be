@@ -27,7 +27,7 @@ router.get(
 router.put(
     "/:id",
     validate(idParamSchema, "params"),
-    validate(updateProductSchema, "body"),
+    validate(updateProductSchema, "body", false),
     updateProduct
 );
 
