@@ -30,7 +30,10 @@ if (process.env.NODE_ENV === 'development') {
 // Enable CORS
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: [
+            "http://localhost:3000",
+            "https://yashmawabhandar.com"
+        ],
         credentials: true,
     })
 );
