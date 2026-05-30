@@ -3,7 +3,7 @@ import path from "path";
 import PDFDocument from "pdfkit";
 import { v2 as cloudinary } from "cloudinary";
 import Address from "../models/address.model";
-import { paymentStatusEnum } from "../types/order.enum";
+import { orderStatusEnum, paymentStatusEnum } from "../types/order.enum";
 
 const BLUE = "#4a74a5";
 const TEXT = "#222222";
@@ -84,7 +84,9 @@ export const generateInvoicePdf = async (order: any) => {
                 const gstAmount = order.gstAmount || 0;
                 const grandTotal = order.finalAmount || 0;
                 const invoiceDate = formatDate(order.createdAt);
-                const isPaid = order.paymentStatus === paymentStatusEnum.PAID;
+                const isPaid = order.orderStatus === orderStatusEnum.CONFIRMED;
+                const isCancel = order.orderStatus === orderStatusEnum.CANCELLED;
+                const isRefund = order.orderStatus === orderStatusEnum.REFUND;
 
                 const billingAddress = [
                     address.addressLine1,
@@ -104,6 +106,16 @@ export const generateInvoicePdf = async (order: any) => {
                     doc.save();
                     doc.rotate(-35, { origin: [300, 400] });
                     doc.fillColor("#d8f0dd").font("Bold").fontSize(90).text("PAID", 120, 320);
+                    doc.restore();
+                    if (!isCancel) return;
+                    doc.save();
+                    doc.rotate(-35, { origin: [300, 400] });
+                    doc.fillColor("#e4a49e").font("Bold").fontSize(90).text("CANCELLED", 120, 320);
+                    doc.restore();
+                    if (!isRefund) return;
+                    doc.save();
+                    doc.rotate(-35, { origin: [300, 400] });
+                    doc.fillColor("#f0e2d8").font("Bold").fontSize(90).text("REFUND", 120, 320);
                     doc.restore();
                 };
 
