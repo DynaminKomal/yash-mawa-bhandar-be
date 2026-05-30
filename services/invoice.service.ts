@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import Address from "../models/address.model";
 import { orderStatusEnum, paymentStatusEnum } from "../types/order.enum";
 
-const BLUE = "#4a74a5";
+const GREEN = "#4aa574";
 const TEXT = "#222222";
 const LIGHT = "#666666";
 const BORDER = "#d9d9d9";
@@ -141,14 +141,14 @@ export const generateInvoicePdf = async (order: any) => {
                 const drawHeader = () => {
                     drawWatermark();
 
-                    doc.font("Bold").fontSize(12).fillColor(BLUE).text("TAX INVOICE", 40, 30);
+                    doc.font("Bold").fontSize(12).fillColor(GREEN).text("TAX INVOICE", 40, 30);
                     doc.font("Bold").fontSize(20).fillColor(TEXT).text("YASH MAWA BHANDAR", 40, 52);
 
                     doc.font("Regular")
                         .fontSize(9)
                         .fillColor(TEXT)
                         .text(`GSTIN ${process.env.GST_NUMBER || "-"}`, 40, 82)
-                        .text("Near Shiv Mandir, Tyodhi", 40, 96)
+                        .text("Near Shiv Murti, Tyodhi", 40, 96)
                         .text("Delhi Saharanpur Highway, Bagpat, UTTAR PRADESH, 250611", 40, 110)
                         .text(`Mobile +91 ${process.env.CONTACT_NUMBER || "-"}`, 40, 124);
 
@@ -183,7 +183,7 @@ export const generateInvoicePdf = async (order: any) => {
                 };
 
                 const drawTableHeader = (top: number) => {
-                    doc.moveTo(40, top).lineTo(555, top).strokeColor(BLUE).stroke();
+                    doc.moveTo(40, top).lineTo(555, top).strokeColor(GREEN).stroke();
 
                     const headers = ["#", "Item", "Rate / Item", "Qty", "Taxable Value", "Tax Amount", "Amount"];
                     const positions = [45, 70, 250, 330, 380, 455, 520];
@@ -253,7 +253,7 @@ export const generateInvoicePdf = async (order: any) => {
                 doc.text(`₹${formatCurrency(grandTotal)}`, 500, y);
                 y += 35;
 
-                doc.moveTo(40, y).lineTo(555, y).strokeColor(BLUE).stroke();
+                doc.moveTo(40, y).lineTo(555, y).strokeColor(GREEN).stroke();
                 y += 10;
 
                 doc.font("Regular")
