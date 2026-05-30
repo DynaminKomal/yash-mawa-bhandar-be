@@ -122,3 +122,28 @@ export const getAllOrdersController = grasp(
         );
     }
 );
+
+export const cancelOrderController = grasp(
+    async (
+        req: AuthRequest,
+        res: Response
+    ) => {
+        const { id } = req.validatedParams;
+
+        const response =
+            await paymentService.cancelOrderService({
+                orderId: id,
+                userId: req.user._id,
+                cancelReason:
+                    req.validatedBody.cancelReason,
+            });
+
+        sendResponse(
+            res,
+            200,
+            "success",
+            "Order cancelled successfully",
+            response
+        );
+    }
+);

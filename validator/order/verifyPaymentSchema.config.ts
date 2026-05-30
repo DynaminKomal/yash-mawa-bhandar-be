@@ -27,3 +27,12 @@ export const getOrderSchema = z
             .trim()
             .optional()
     })
+
+
+
+export const cancelBodySchema = z.object({
+    cancelReason: z
+        .string({ error: "Reason is required" })
+        .min(1, "Reason cannot be empty")
+        .trim()
+}).strict();

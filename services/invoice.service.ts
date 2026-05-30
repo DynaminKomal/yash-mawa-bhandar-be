@@ -84,9 +84,13 @@ export const generateInvoicePdf = async (order: any) => {
                 const gstAmount = order.gstAmount || 0;
                 const grandTotal = order.finalAmount || 0;
                 const invoiceDate = formatDate(order.createdAt);
-                const isPaid = order.orderStatus === orderStatusEnum.CONFIRMED;
-                const isCancel = order.orderStatus === orderStatusEnum.CANCELLED;
-                const isRefund = order.orderStatus === orderStatusEnum.REFUND;
+
+                const isPaid =
+                    order.paymentStatus === paymentStatusEnum.PAID ||
+                    order.orderStatus === orderStatusEnum.CONFIRMED;
+                const isCancelled = order.orderStatus === orderStatusEnum.CANCELLED;
+                const isRefund =
+                    order.orderStatus === orderStatusEnum.REFUND
 
                 const billingAddress = [
                     address.addressLine1,
@@ -100,28 +104,42 @@ export const generateInvoicePdf = async (order: any) => {
 
                 const signaturePath = path.join(process.cwd(), "public", "signature.png");
 
-                // ── Draw PAID watermark on the CURRENT page only ──────────────────
-                const drawPaidWatermark = () => {
-                    if (!isPaid) return;
-                    doc.save();
-                    doc.rotate(-35, { origin: [300, 400] });
-                    doc.fillColor("#d8f0dd").font("Bold").fontSize(90).text("PAID", 120, 320);
-                    doc.restore();
-                    if (!isCancel) return;
-                    doc.save();
-                    doc.rotate(-35, { origin: [300, 400] });
-                    doc.fillColor("#e4a49e").font("Bold").fontSize(90).text("CANCELLED", 120, 320);
-                    doc.restore();
-                    if (!isRefund) return;
-                    doc.save();
-                    doc.rotate(-35, { origin: [300, 400] });
-                    doc.fillColor("#f0e2d8").font("Bold").fontSize(90).text("REFUND", 120, 320);
-                    doc.restore();
+                /**
+                 * Draw the correct watermark based on order status.
+                 * Priority: CANCELLED > REFUND > PAID
+                 * Each is drawn independently with its own color.
+                 */
+                const drawWatermark = () => {
+                    if (isCancelled) {
+                        doc.save();
+                        doc.rotate(-35, { origin: [300, 420] });
+                        doc.font("Bold").fontSize(72).fillColor("#f5c6c6").opacity(0.55);
+                        doc.text("CANCELLED", 60, 340);
+                        doc.restore();
+                        return;
+                    }
+
+                    if (isRefund) {
+                        doc.save();
+                        doc.rotate(-35, { origin: [300, 420] });
+                        doc.font("Bold").fontSize(82).fillColor("#f0e2d8").opacity(0.55);
+                        doc.text("REFUNDED", 90, 340);
+                        doc.restore();
+                        return;
+                    }
+
+                    if (isPaid) {
+                        doc.save();
+                        doc.rotate(-35, { origin: [300, 420] });
+                        doc.font("Bold").fontSize(90).fillColor("#d8f0dd").opacity(0.55);
+                        doc.text("PAID", 150, 340);
+                        doc.restore();
+                    }
                 };
 
                 // ── Draw page header (logo, business info, invoice meta, customer) ─
                 const drawHeader = () => {
-                    drawPaidWatermark();
+                    drawWatermark();
 
                     doc.font("Bold").fontSize(12).fillColor(BLUE).text("TAX INVOICE", 40, 30);
                     doc.font("Bold").fontSize(20).fillColor(TEXT).text("YASH MAWA BHANDAR", 40, 52);
@@ -139,6 +157,19 @@ export const generateInvoicePdf = async (order: any) => {
                     doc.font("Bold").fontSize(10).text(`Invoice #: ${invoiceNo}`, 40, 165);
                     doc.text(`Invoice Date: ${invoiceDate}`, 220, 165);
                     doc.text(`Due Date: ${invoiceDate}`, 410, 165);
+
+                    // Show cancellation date on invoice if cancelled
+                    if (isCancelled && order.cancelledAt) {
+                        doc.font("Regular")
+                            .fontSize(9)
+                            .fillColor("#cc0000")
+                            .text(
+                                `Cancelled On: ${formatDate(order.cancelledAt)}`,
+                                40,
+                                145
+                            )
+                            .fillColor(TEXT);
+                    }
 
                     doc.font("Bold").fontSize(10).text("Customer Details:", 40, 205);
                     doc.font("Regular")
@@ -176,7 +207,6 @@ export const generateInvoicePdf = async (order: any) => {
 
                     const rowHeight = 38;
 
-                    // If a new page is needed for items, repeat header + table header
                     if (y + rowHeight + 180 > PAGE_HEIGHT) {
                         doc.addPage();
                         drawHeader();
@@ -204,7 +234,7 @@ export const generateInvoicePdf = async (order: any) => {
 
                 y += 20;
 
-                // ── Totals block (~100px) ─────────────────────────────────────────
+                // ── Totals block ──────────────────────────────────────────────────
                 if (y + 100 > PAGE_HEIGHT) {
                     doc.addPage();
                     drawHeader();
@@ -242,19 +272,40 @@ export const generateInvoicePdf = async (order: any) => {
                 doc.text(`₹${formatCurrency(grandTotal)}`, 500, y);
                 y += 30;
 
+                // ── Cancellation reason block (only for cancelled orders) ───────
+                if (isCancelled && order.cancelReason) {
+                    if (y + 40 > PAGE_HEIGHT - MARGIN) {
+                        doc.addPage();
+                        drawHeader();
+                        y = MARGIN + 20;
+                    }
+                    doc.font("Bold").fontSize(9).fillColor("#cc0000").text("Cancellation Reason:", 40, y);
+                    doc.font("Regular").fontSize(8).fillColor(TEXT).text(order.cancelReason, 170, y, { width: 350 });
+                    y += 30;
+                }
+
+                // ── Refund info block (only for cancelled + refund orders) ───────
+                if (isCancelled || isRefund) {
+                    const refundAmount = (grandTotal * 70) / 100;
+                    if (y + 30 > PAGE_HEIGHT - MARGIN) {
+                        doc.addPage();
+                        drawHeader();
+                        y = MARGIN + 20;
+                    }
+                    doc.font("Bold").fontSize(9).fillColor("#1a7f37").text("Refund Amount (70%):", 40, y);
+                    doc.text(`₹${formatCurrency(refundAmount)}`, 170, y);
+                    doc.font("Regular").fontSize(8).fillColor(TEXT);
+                    y += 20;
+                }
+
                 // ── Footer block ──────────────────────────────────────────────────
-                // Heights:  "For YASH..."(18) + signature img(55) + "Auth Sign"(20)
-                //         + gap(15) + "Thank You"(25) + T&C label(18) + T&C body(30)
-                //         = ~181px. Use 190 for safety.
                 const FOOTER_HEIGHT = 190;
 
                 if (y + FOOTER_HEIGHT > PAGE_HEIGHT - MARGIN) {
-                    // ✅ Clean new page — NO drawHeader(), NO watermark, NO customer details
                     doc.addPage();
-                    y = MARGIN + 20; // start near top with a small breathing gap
+                    y = MARGIN + 20;
                 }
 
-                // Signature block (right-aligned)
                 doc.font("Bold").fontSize(10).text("For YASH MAWA BHANDAR", 390, y);
                 y += 18;
 
@@ -266,7 +317,6 @@ export const generateInvoicePdf = async (order: any) => {
                 doc.font("Regular").fontSize(8).text("Authorized Signatory", 405, y);
                 y += 28;
 
-                // Thank you + T&C (left-aligned)
                 doc.font("Regular")
                     .fontSize(14)
                     .text("Thank You for Shopping with Yash Mawa Bhandar!", 40, y);
@@ -288,20 +338,14 @@ export const generateInvoicePdf = async (order: any) => {
 
                 stream.on("finish", async () => {
                     try {
-                        const upload =
-                            await cloudinary.uploader.upload(
-                                filePath,
-                                {
-                                    resource_type:
-                                        "raw",
-                                    folder:
-                                        "invoices",
-                                    public_id:
-                                        `invoice-${safeOrderId}`,
-                                    format:
-                                        "pdf",
-                                }
-                            );
+                        const upload = await cloudinary.uploader.upload(filePath, {
+                            resource_type: "raw",
+                            folder: "yash-mawa-bhandar/invoices",
+                            public_id: `invoice-${safeOrderId}`,
+                            format: "pdf",
+                            overwrite: true,
+                            invalidate: true,
+                        });
 
                         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 

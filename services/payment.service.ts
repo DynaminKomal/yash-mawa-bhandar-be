@@ -3,6 +3,7 @@ import { razorpayInstance } from "../utility/razorpay";
 import Cart from "../models/cart.model";
 import Order from "../models/order.model";
 import { generateInvoicePdf } from "./invoice.service";
+import { v2 as cloudinary } from "cloudinary";
 
 import {
     orderStatusEnum,
@@ -10,6 +11,17 @@ import {
     paymentStatusEnum,
 } from "../types/order.enum";
 import { GetOrdersParams } from "../types/payment.type";
+
+const CANCEL_WINDOW_MS =
+    3 * 60 * 60 * 1000;
+
+const REFUND_PERCENT = 70;
+
+interface CancelOrderPayload {
+    orderId: string;
+    userId: string;
+    cancelReason: string;
+}
 
 export const createRazorpayOrderService =
     async (amount: number) => {
@@ -294,6 +306,107 @@ export const getAllOrdersService = async ({
             totalPages: Math.ceil(totalOrders / limit),
             currentPage: page,
             limit,
+        },
+    };
+};
+
+
+export const cancelOrderService = async ({
+    orderId,
+    userId,
+    cancelReason,
+}: CancelOrderPayload) => {
+    if (!cancelReason?.trim()) {
+        throw new Error("Cancellation reason is required.");
+    }
+
+    const order = await Order.findOne({
+        _id: orderId,
+        user: userId,
+    });
+    console.log("order", order)
+    if (!order) {
+        throw new Error("Order not found.");
+    }
+
+    // Only allow cancel for these statuses
+    const cancellableStatuses = [
+        orderStatusEnum.PENDING,
+        orderStatusEnum.CONFIRMED,
+    ];
+
+    if (!cancellableStatuses.includes(order.orderStatus)) {
+        throw new Error(
+            "Order cannot be cancelled in its current status."
+        );
+    }
+    if (!order.createdAt) {
+        throw new Error("Order creation date is missing.");
+    }
+    
+    const expiresAt =
+        new Date(order.createdAt).getTime() +
+        CANCEL_WINDOW_MS;
+
+    if (Date.now() > expiresAt) {
+        throw new Error(
+            "Cancellation window has expired. Orders can only be cancelled within 3 hours."
+        );
+    }
+
+    // Refund calculation
+    const refundAmount =
+        (Number(order.finalAmount) * REFUND_PERCENT) / 100;
+
+    // Update order
+    order.orderStatus = orderStatusEnum.CANCELLED;
+    order.cancelledAt = new Date();
+    order.cancelReason = cancelReason.trim();
+
+    // Payment update
+    if (order.paymentStatus === paymentStatusEnum.PAID) {
+        order.paymentStatus =
+            paymentStatusEnum.REFUND_INITIATED;
+    }
+
+    await order.save();
+
+    // Delete old invoice (optional safe)
+    if (order.invoicePublicId) {
+        try {
+            await cloudinary.uploader.destroy(
+                order.invoicePublicId,
+                {
+                    resource_type: "raw",
+                }
+            );
+        } catch (err) {
+            console.error("Cloudinary delete failed:", err);
+        }
+    }
+
+    try {
+        const invoice = await generateInvoicePdf(order);
+
+        order.invoiceUrl = invoice.url;
+        order.invoicePublicId = invoice.public_id;
+
+        await order.save();
+    } catch (err) {
+        console.error("Invoice regeneration failed:", err);
+    }
+
+    return {
+        orderId: order._id,
+        orderStatus: order.orderStatus,
+        paymentStatus: order.paymentStatus,
+        refundAmount,
+        refundPercent: REFUND_PERCENT,
+        cancelReason: order.cancelReason,
+        cancelledAt: order.cancelledAt,
+        invoice: {
+            url: order.invoiceUrl,
+            publicId: order.invoicePublicId,
         },
     };
 };
