@@ -11,6 +11,7 @@ import {
     paymentStatusEnum,
 } from "../types/order.enum";
 import { GetOrdersParams } from "../types/payment.type";
+import { sendOrderEmailToAdmin } from "../utility/mail";
 
 const CANCEL_WINDOW_MS =
     3 * 60 * 60 * 1000;
@@ -199,6 +200,11 @@ export const verifyPaymentService =
                 invoiceData.public_id;
 
             await order.save();
+            await sendOrderEmailToAdmin({
+                order,
+                invoiceUrl: invoiceData.url,
+                event: "created",
+            });
             await Cart.findOneAndUpdate(
                 { user },
                 {
@@ -343,7 +349,7 @@ export const cancelOrderService = async ({
     if (!order.createdAt) {
         throw new Error("Order creation date is missing.");
     }
-    
+
     const expiresAt =
         new Date(order.createdAt).getTime() +
         CANCEL_WINDOW_MS;
@@ -371,6 +377,7 @@ export const cancelOrderService = async ({
 
     await order.save();
 
+
     // Delete old invoice (optional safe)
     if (order.invoicePublicId) {
         try {
@@ -392,6 +399,11 @@ export const cancelOrderService = async ({
         order.invoicePublicId = invoice.public_id;
 
         await order.save();
+        await sendOrderEmailToAdmin({
+            order,
+            invoiceUrl: invoice.url,
+            event: "cancelled",
+        });
     } catch (err) {
         console.error("Invoice regeneration failed:", err);
     }

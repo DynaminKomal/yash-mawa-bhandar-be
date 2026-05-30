@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/DynaminKomal/yash-mawa-bhandar-be#readme",
   "dependencies": {
+    "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
