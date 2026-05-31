@@ -5,6 +5,7 @@ export enum orderStatusEnum {
     OUT_FOR_DELIVERY = 3,
     DELIVERED = 4,
     CANCELLED = 5,
+    REFUND = 6,
 }
 
 
@@ -18,5 +19,8 @@ export enum paymentMethodEnum {
 export enum paymentStatusEnum {
     PENDING = 0,
     PAID = 1,
-    FAILD = 2
+    FAILD = 2,
+    REFUND_INITIATED = 3,
+    REFUNDED = 4,
+
 }

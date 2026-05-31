@@ -10,6 +10,8 @@ export interface IProduct extends Document {
     price: number;
     unitType: UnitType;
     inStock: boolean;
+    hsnCode: string;
+    gstRate: number;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -45,6 +47,17 @@ const productSchema = new Schema<IProduct>(
         price: {
             type: Number,
             required: true,
+        },
+        hsnCode: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+
+        gstRate: {
+            type: Number,
+            required: true,
+            default: 0,
         },
         inStock: {
             type: Boolean,
