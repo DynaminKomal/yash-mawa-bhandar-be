@@ -36,6 +36,27 @@ export const createProductSchema = z.object({
     category: z
         .string({ error: "Category is required" })
         .min(1, "Category code is required"),
+    hsnCode: z
+        .string({ error: "HSN Code is required" })
+        .min(1, "HSN code is required"),
+    gstRate: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null || val === "") {
+                return undefined;
+            }
+            return Number(val);
+        },
+        z.number({ error: "GST Rate is required" })
+            .refine((val) => !isNaN(val), {
+                message: "GST Rate must be a valid number",
+            })
+            .refine((val) => val >= 0, {
+                message: "GST Rate cannot be negative",
+            })
+            .refine((val) => val <= 100, {
+                message: "GST Rate cannot exceed 100",
+            })
+    ),
 
     price: z.preprocess(
         (val) => {
@@ -71,6 +92,20 @@ export const updateProductSchema = z.object({
     price: z.preprocess(
         (val) => (val === "" ? undefined : Number(val)),
         z.number().positive().optional()
+    ),
+    hsnCode: z
+        .string()
+        .min(1).optional(),
+    gstRate: z.preprocess(
+        (val) =>
+            val === undefined || val === null || val === ""
+                ? undefined
+                : Number(val),
+        z
+            .number()
+            .min(0, "GST Rate cannot be negative")
+            .max(100, "GST Rate cannot exceed 100")
+            .optional()
     ),
     image: imageSchema.optional(),
     unitType: z.enum([

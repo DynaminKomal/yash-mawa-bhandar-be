@@ -53,7 +53,7 @@ export const createCartItems = async (data: any) => {
 
 export const getCartForUser = async (userId: string) => {
     const cart = await Cart.findOne({ user: userId })
-        .populate("items.product", "name price images unitType");
+        .populate("items.product", "name price images unitType hsnCode gstRate");
 
     if (!cart) {
         return {
@@ -71,6 +71,8 @@ export const getCartForUser = async (userId: string) => {
                 price: item.price,
                 unitType: item.unitType,
                 quantity: item.quantity,
+                hsnCode: item.product.hsnCode,
+                gstRate: item.product.gstRate,
                 weightInGram: item.unitType === 'pack' ? (1 * item.quantity) : (1000 * item.quantity)
 
             }

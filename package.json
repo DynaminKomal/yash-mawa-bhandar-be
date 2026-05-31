@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/DynaminKomal/yash-mawa-bhandar-be#readme",
   "dependencies": {
+    "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
@@ -34,7 +35,9 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.1",
     "morgan": "^1.10.1",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^8.0.7",
+    "pdfkit": "^0.18.0",
     "razorpay": "^2.9.6",
     "zod": "^4.4.1"
   },
@@ -47,6 +50,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.6.0",
     "@types/nodemailer": "^8.0.0",
+    "@types/pdfkit": "^0.17.6",
     "eslint": "^10.3.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
