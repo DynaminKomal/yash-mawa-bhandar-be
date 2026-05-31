@@ -61,15 +61,12 @@ const productSchema = new mongoose.Schema(
             ref: "Category",
             required: true,
         },
-
+        hsnCode: String,
+        gstRate: Number,
         unitType: String,
-
         images: [String],
-
         price: Number,
-
         inStock: Boolean,
-
         isActive: Boolean,
     },
     {
@@ -152,7 +149,8 @@ async function migrate() {
         }
 
         const products = await OldProduct.find({});
-
+        
+        await NewProduct.deleteMany({});
         console.log(`Found ${products.length} products`);
 
         for (const prod of products) {
@@ -175,6 +173,9 @@ async function migrate() {
                     images: prod.images || [],
 
                     price: prod.price || 0,
+                    hsnCode: prod.hsnCode,
+
+                    gstRate: prod.gstRate ?? 0,
 
                     unitType: prod.unitType,
 
