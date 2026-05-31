@@ -2,15 +2,28 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2020",
+    "outDir": "./dist",
+    "rootDir": ".",
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
     "typeRoots": [
       "./node_modules/@types"
     ]
   },
-  "ts-node": {
-    "files": true
-  },
   "include": [
-    "**/*.ts"
+    "server.ts",
+    "app.ts",
+    "controllers/**/*.ts",
+    "models/**/*.ts",
+    "router/**/*.ts",
+    "services/**/*.ts",
+    "types/**/*.ts",
+    "utility/**/*.ts",
+    "validator/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
