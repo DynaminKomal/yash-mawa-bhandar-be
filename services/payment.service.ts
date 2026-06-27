@@ -148,8 +148,8 @@ export const verifyPaymentService =
                             item.quantity,
                         unitType:
                             item.unitType,
-                        hsnCode: item.hsnCode,
-                        gstRate: item.gstRate,
+                        hsnCode: item.product.hsnCode,
+                        gstRate: item.product.gstRate,
                         price:
                             item.price,
                         totalPrice:

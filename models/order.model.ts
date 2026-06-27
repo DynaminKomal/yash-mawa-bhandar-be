@@ -13,6 +13,8 @@ export interface IOrderItem {
     unitType: string;
     price: number;
     totalPrice: number;
+    hsnCode?: string;
+    gstRate?: number;
 }
 
 export interface IOrder extends Document {
@@ -64,6 +66,8 @@ const orderSchema = new Schema<IOrder>(
                 unitType: String,
                 price: Number,
                 totalPrice: Number,
+                hsnCode: String,
+                gstRate: Number,
             },
         ],
         deliveryAddress: {

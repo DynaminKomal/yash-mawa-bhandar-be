@@ -186,7 +186,7 @@ export const generateInvoicePdf = async (order: any) => {
                     doc.moveTo(40, top).lineTo(555, top).strokeColor(GREEN).stroke();
 
                     const headers = ["#", "Item", "Rate / Item", "Qty", "Taxable Value", "Tax Amount", "Amount"];
-                    const positions = [45, 70, 250, 330, 380, 455, 520];
+                    const positions = [42, 60, 185, 248, 290, 375, 470];
 
                     doc.font("Bold").fontSize(8).fillColor(TEXT);
                     headers.forEach((h, i) => doc.text(h, positions[i], top + 8));
@@ -213,20 +213,21 @@ export const generateInvoicePdf = async (order: any) => {
                         y = drawTableHeader(80);
                     }
 
-                    const taxPercent = item.gst || 5;
+                    const taxPercent = typeof item.gstRate === "number" ? item.gstRate : (item.gst || 5);
                     const taxable = item.price * item.quantity;
                     const taxAmount = (taxable * taxPercent) / 100;
                     const total = taxable + taxAmount;
 
+
                     doc.font("Regular").fontSize(8).fillColor(TEXT);
-                    doc.text(String(index + 1), 45, y);
-                    doc.text(item.name, 70, y);
-                    doc.fillColor(LIGHT).fontSize(7).text(`HSN: ${item.hsnCode || "0402"}`, 70, y + 12);
-                    doc.fillColor(TEXT).fontSize(8).text(formatCurrency(item.price), 250, y);
-                    doc.text(String(item.quantity), 330, y);
-                    doc.text(`₹${formatCurrency(taxable)}`, 380, y);
-                    doc.text(`₹${formatCurrency(taxAmount)} (${taxPercent}%)`, 455, y);
-                    doc.font("Bold").text(`₹${formatCurrency(total)}`, 520, y);
+                    doc.text(String(index + 1), 42, y, { width: 15 });
+                    doc.text(item.name, 60, y, { width: 120 });
+                    doc.fillColor(LIGHT).fontSize(7).text(`HSN: ${item.hsnCode || "0402"}`, 60, y + 12, { width: 120 });
+                    doc.fillColor(TEXT).fontSize(8).text(formatCurrency(item.price), 185, y, { width: 60 });
+                    doc.text(String(item.quantity), 248, y, { width: 38 });
+                    doc.text(`₹${formatCurrency(taxable)}`, 290, y, { width: 80 });
+                    doc.text(`₹${formatCurrency(taxAmount)} (${taxPercent}%)`, 375, y, { width: 90 });
+                    doc.font("Bold").text(`₹${formatCurrency(total)}`, 470, y, { width: 85 });
 
                     doc.moveTo(40, y + 28).lineTo(555, y + 28).strokeColor("#efefef").stroke();
                     y += 38;
@@ -241,16 +242,23 @@ export const generateInvoicePdf = async (order: any) => {
                     y = drawTableHeader(80);
                 }
 
-                doc.font("Bold").fontSize(9).text("Taxable Amount", 380, y);
-                doc.text(`₹${formatCurrency(taxableAmount)}`, 500, y);
+                doc.font("Bold").fontSize(9).text("Taxable Amount", 350, y, { width: 110 });
+                doc.text(`₹${formatCurrency(taxableAmount)}`, 465, y, { width: 90 });
                 y += 18;
 
-                doc.text("IGST 5%", 380, y);
-                doc.text(`₹${formatCurrency(gstAmount)}`, 500, y);
+                const effectiveGstRate = taxableAmount > 0 ? (gstAmount / taxableAmount) * 100 : 0;
+                const formatPercent = (val: number) => {
+                    if (val % 1 === 0) {
+                        return `${val}%`;
+                    }
+                    return `${val.toFixed(1)}%`;
+                };
+                doc.text(`IGST (${formatPercent(effectiveGstRate)})`, 350, y, { width: 110 });
+                doc.text(`₹${formatCurrency(gstAmount)}`, 465, y, { width: 90 });
                 y += 22;
 
-                doc.fontSize(13).text("Total", 380, y);
-                doc.text(`₹${formatCurrency(grandTotal)}`, 500, y);
+                doc.fontSize(13).text("Total", 350, y, { width: 110 });
+                doc.text(`₹${formatCurrency(grandTotal)}`, 465, y, { width: 90 });
                 y += 35;
 
                 doc.moveTo(40, y).lineTo(555, y).strokeColor(GREEN).stroke();
@@ -268,8 +276,8 @@ export const generateInvoicePdf = async (order: any) => {
                 );
                 y += 26;
 
-                doc.font("Bold").fontSize(11).text("Amount Payable:", 380, y);
-                doc.text(`₹${formatCurrency(grandTotal)}`, 500, y);
+                doc.font("Bold").fontSize(11).text("Amount Payable:", 350, y, { width: 110 });
+                doc.text(`₹${formatCurrency(grandTotal)}`, 465, y, { width: 90 });
                 y += 30;
 
                 // ── Cancellation reason block (only for cancelled orders) ───────

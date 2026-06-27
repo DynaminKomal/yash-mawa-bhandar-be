@@ -51,6 +51,59 @@ export const createNewAddress = z.object({
 
 }).strict();
 
+export const updateAddressSchema = z.object({
+    fullName: z
+        .string()
+        .trim()
+        .min(3, "Username must be at least 3 characters")
+        .optional(),
+
+    phoneNumber: z
+        .string()
+        .trim()
+        .regex(/^\d{10}$/, "Phone Number must be exactly 10 digits")
+        .optional(),
+
+    address: addressSchema.partial().optional(),
+
+    addressLine1: z
+        .string()
+        .trim()
+        .min(3, "Address Line 1 is required")
+        .optional(),
+
+    addressLine2: z
+        .string()
+        .trim()
+        .optional(),
+
+    city: z
+        .string()
+        .trim()
+        .min(2, "City is required")
+        .optional(),
+
+    state: z
+        .string()
+        .trim()
+        .min(2, "State is required")
+        .optional(),
+
+    pincode: z
+        .string()
+        .trim()
+        .regex(/^[0-9]{6}$/, "Pincode must be 6 digits")
+        .optional(),
+
+    landmark: z
+        .string()
+        .trim()
+        .optional(),
+
+    addressType: z.enum(["home", "work", "other"]).optional(),
+}).strict();
+
+
 export const createUserSchema = z.object({
     userName: z
         .string()

@@ -6,12 +6,12 @@ import {
     updateAddressById
 }
     from "../controllers/address.controller";
-import { addressSchema } from "../validator/user/user.config";
+import { updateAddressSchema } from "../validator/user/user.config";
 import { mongoIdSchema } from "../validator/common.config";
 
 const router = Router();
 
-router.patch("/:id", validate(mongoIdSchema, "params"), validate(addressSchema, "body"), updateAddressById);
+router.put("/:id", validate(mongoIdSchema, "params"), validate(updateAddressSchema, "body"), updateAddressById);
 router.delete("/:id", validate(mongoIdSchema, "params"), deleteAddressById);
 router.patch("/:id/default", validate(mongoIdSchema, "params"), setDefaultAddressById);
 
