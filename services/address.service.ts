@@ -61,7 +61,43 @@ export const getAllAddress = async (userId: string) => {
 
 
 export const updateAddress = async (addressId: string, data: any) => {
-    return Address.findByIdAndUpdate(addressId, data, {
+    const updateData: any = {};
+
+    const directFields = [
+        "fullName",
+        "phoneNumber",
+        "addressLine1",
+        "addressLine2",
+        "city",
+        "state",
+        "pincode",
+        "landmark",
+        "addressType"
+    ];
+    for (const field of directFields) {
+        if (data[field] !== undefined) {
+            updateData[field] = data[field];
+        }
+    }
+
+    if (data.address) {
+        const addressFields = [
+            "addressLine1",
+            "addressLine2",
+            "city",
+            "state",
+            "pincode",
+            "landmark",
+            "addressType"
+        ];
+        for (const field of addressFields) {
+            if (data.address[field] !== undefined) {
+                updateData[field] = data.address[field];
+            }
+        }
+    }
+
+    return Address.findByIdAndUpdate(addressId, updateData, {
         new: true,
         runValidators: true,
     });
