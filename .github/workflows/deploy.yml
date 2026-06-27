@@ -1,0 +1,36 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/yash-mawa-bhandar-be
+
+            echo "🔄 Pulling latest code from release branch..."
+            git pull origin release
+
+            echo "📦 Installing dependencies..."
+            npm install --production
+
+            echo "🔨 Building TypeScript..."
+            npx tsc
+
+            echo "🚀 Restarting application with PM2..."
+            pm2 restart yash-mawa-bhandar-be || pm2 start dist/server.js --name yash-mawa-bhandar-be
+
+            echo "✅ Deployment complete!"
+            pm2 status

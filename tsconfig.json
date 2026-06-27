@@ -3,6 +3,8 @@
     "module": "CommonJS",
     "target": "ES2020",
     "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": ".",
     "typeRoots": [
       "./node_modules/@types"
     ]
