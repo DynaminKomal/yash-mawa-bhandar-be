@@ -8,7 +8,7 @@ import { IdParams } from "../types/request.types";
 
 export const createProductController = grasp(async (req: Request, res: Response) => {
 
-    const processedData = await productService.createProduct({
+    const { processedData, existingProduct } = await productService.createProduct({
         ...req.validatedBody,
     });
 
@@ -29,15 +29,41 @@ export const createProductController = grasp(async (req: Request, res: Response)
         );
 
         imageUrls = uploads.map((img) => img.secure_url);
-        console.log('imageUrls', imageUrls)
     }
 
-    const product = await Product.create({
-        ...processedData,
-        images: imageUrls,
-    });
+    let product;
 
-    sendResponse(res, 201, "success", "Product created", product);
+    if (existingProduct) {
+        const updateData: any = {
+            ...processedData,
+            isActive: true,
+            isDeleted: false,
+        };
+
+        if (imageUrls.length > 0) {
+            updateData.images = imageUrls;
+        }
+
+        product = await Product.findByIdAndUpdate(
+            existingProduct._id,
+            updateData,
+            { new: true }
+        ).populate({
+            path: "category",
+            select: "name code -_id",
+        });
+
+        sendResponse(res, 200, "success", "Product restored and updated", product);
+    } else {
+        product = await Product.create({
+            ...processedData,
+            images: imageUrls,
+            isActive: true,
+            isDeleted: false,
+        });
+
+        sendResponse(res, 201, "success", "Product created", product);
+    }
 });
 
 export const getProductList = grasp(async (req: Request, res) => {
@@ -58,7 +84,7 @@ export const updateProduct = grasp(
     async (req: Request<IdParams>, res: Response) => {
         const { id } = req.validatedParams;
 
-        const existingProduct = await Product.findById(id);
+        const existingProduct = await Product.findOne({ _id: id, isDeleted: false });
 
         if (!existingProduct) {
             throw new Error("Product not found");

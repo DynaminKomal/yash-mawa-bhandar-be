@@ -126,7 +126,7 @@ async function migrate() {
                 const newCategory = await NewCategory.create({
                     name: cat.name,
 
-                    code: `${cat.code || cat.name}-${new mongoose.Types.ObjectId()}`,
+                    code: `${cat.code || cat.name}`,
 
                     description: cat.description,
 
@@ -163,7 +163,7 @@ async function migrate() {
                 await NewProduct.create({
                     name: prod.name,
 
-                    code: `${prod.code || prod.name}-${new mongoose.Types.ObjectId()}`,
+                    code: `${prod.code || prod.name}`,
 
                     description: prod.description,
 

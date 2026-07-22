@@ -24,14 +24,18 @@ export const createProduct = async (data: any) => {
         ],
     });
 
-    if (existing) {
+    if (existing && !existing.isDeleted) {
         throw new Error("Product already exists");
     }
 
     data.category = category._id;
     data.code = code;
+    data.isDeleted = false;
 
-    return data;
+    return {
+        processedData: data,
+        existingProduct: existing && existing.isDeleted ? existing : null,
+    };
 };
 
 export const getAllProducts = async (query: any) => {
@@ -43,7 +47,24 @@ export const getAllProducts = async (query: any) => {
     const categoryCode = query.category?.trim();
     const sort = query.sort || "default";
 
-    let filter: any = { isActive: true };
+    let filter: any = { isDeleted: false };
+
+    // If request comes from Admin (or explicitly asks for all statuses), do not force isActive: true by default
+    if (query.isAdmin || query.isAdmin === "true") {
+        if (query.isActive !== undefined) {
+            filter.isActive = query.isActive;
+        }
+        if (query.inStock !== undefined) {
+            filter.inStock = query.inStock;
+        }
+    } else {
+        // Customer / Public API defaults to active products only
+        filter.isActive = query.isActive !== undefined ? query.isActive : true;
+
+        if (query.inStock !== undefined) {
+            filter.inStock = query.inStock;
+        }
+    }
 
     if (search) {
         filter.$or = [
@@ -92,7 +113,7 @@ export const getAllProducts = async (query: any) => {
 };
 
 export const getProductById = async (id: string) => {
-    const product = await Product.findById(id);
+    const product = await Product.findOne({ _id: id, isDeleted: false });
     if (!product) {
         throw new Error("Product not found");
     }
@@ -120,9 +141,11 @@ export const updateProductById = async (id: string, data: any) => {
             .replace(/[^a-z0-9-]/g, "");
     }
 
-    const product = await Product.findByIdAndUpdate(id, data, {
-        new: true,
-    }).populate({
+    const product = await Product.findOneAndUpdate(
+        { _id: id, isDeleted: false },
+        data,
+        { new: true }
+    ).populate({
         path: "category",
         select: "name code -_id",
     });
@@ -135,9 +158,9 @@ export const updateProductById = async (id: string, data: any) => {
 };
 
 export const deleteProductById = async (id: string) => {
-    const product = await Product.findByIdAndUpdate(
-        id,
-        { isActive: false },
+    const product = await Product.findOneAndUpdate(
+        { _id: id, isDeleted: false },
+        { isDeleted: true, isActive: false },
         { new: true }
     );
 
