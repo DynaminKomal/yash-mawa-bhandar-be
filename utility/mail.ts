@@ -90,6 +90,107 @@ export const sendAdminNotification = async (visit: any) => {
   }
 };
 
+export const sendPlantVisitStatusEmail = async (
+  visit: any,
+  status: "approved" | "rejected",
+  notes?: string
+) => {
+  const transporter = getTransporter();
+  const isApproved = status === "approved";
+  const statusBadgeColor = isApproved ? "#569863" : "#e53e3e";
+  const headerTitle = isApproved
+    ? "Plant Visit Request Approved! 🎉"
+    : "Plant Visit Request Update";
+  const statusLabel = isApproved ? "APPROVED" : "REJECTED";
+
+  const htmlTemplate = `
+    <div style="font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 20px;">
+      <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        
+        <div style="background: ${statusBadgeColor}; padding: 24px 20px; text-align: center; color: white;">
+          <h2 style="margin: 0;">Yash Mawa Bhandar</h2>
+          <span style="font-size: 12px; opacity: 0.85;">SINCE 1975</span>
+          <p style="margin: 10px 0 0; font-size: 18px; font-weight: bold;">${headerTitle}</p>
+          <span style="
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 14px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            font-weight: bold;
+          ">${statusLabel}</span>
+        </div>
+
+        <div style="padding: 24px 20px;">
+          <p style="font-size: 16px; color: #333; margin-top: 0;">Dear <strong>${visit.userName}</strong>,</p>
+          
+          <p style="font-size: 15px; color: #444; line-height: 1.5;">
+            ${
+              isApproved
+                ? `We are pleased to inform you that your request to visit our plant has been <strong>approved</strong>.`
+                : `Thank you for your interest in visiting our plant. Regrettably, we are unable to approve your visit request at this time.`
+            }
+          </p>
+
+          <h3 style="color: #569863; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; margin-top: 20px;">Visit Request Details</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+              <td style="padding: 8px; font-weight: bold; width: 35%; color: #555;">Visit ID</td>
+              <td style="padding: 8px; color: #222;">${visit.visitId}</td>
+            </tr>
+            <tr style="background: #f9f9f9;">
+              <td style="padding: 8px; font-weight: bold; color: #555;">Company</td>
+              <td style="padding: 8px; color: #222;">${visit.company || "-"}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; font-weight: bold; color: #555;">Requested Date</td>
+              <td style="padding: 8px; color: #222;">${new Date(visit.date).toDateString()}</td>
+            </tr>
+            <tr style="background: #f9f9f9;">
+              <td style="padding: 8px; font-weight: bold; color: #555;">Visitors</td>
+              <td style="padding: 8px; color: #222;">${visit.numberVisitor}</td>
+            </tr>
+          </table>
+
+          ${
+            notes
+              ? `<div style="margin-top: 20px; padding: 15px; background: ${isApproved ? '#f1f8f3' : '#fff5f5'}; border-left: 4px solid ${statusBadgeColor}; border-radius: 4px;">
+                  <strong style="color: ${statusBadgeColor}; font-size: 14px;">Notes from Management:</strong>
+                  <p style="margin: 6px 0 0; color: #444; font-size: 14px;">${notes}</p>
+                </div>`
+              : ''
+          }
+
+          <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; font-size: 14px; color: #666;">
+            If you have any questions or require further assistance, feel free to reply to this email or contact us directly.
+          </div>
+        </div>
+
+        <div style="background: #fafafa; padding: 15px 20px; text-align: center; font-size: 12px; color: #888;">
+          <p style="margin: 0;">© ${new Date().getFullYear()} Yash Mawa Bhandar · Legacy of Ramkumar Ratan Dairy</p>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Yash Mawa Bhandar" <${process.env.EMAIL_USER}>`,
+      to: visit.email,
+      subject: isApproved
+        ? `Plant Visit Approved – Visit ID: ${visit.visitId}`
+        : `Plant Visit Status Update – Visit ID: ${visit.visitId}`,
+      html: htmlTemplate,
+    });
+    console.log(`[Email] Plant visit status email (${status}) sent to ${visit.email}`);
+  } catch (error) {
+    console.error(`[Email Error] Failed to send plant visit status email to ${visit.email}:`, error);
+  }
+};
+
 type EmailEvent = "created" | "cancelled";
 
 interface OrderEmailPayload {

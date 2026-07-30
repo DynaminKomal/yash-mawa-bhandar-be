@@ -8,6 +8,7 @@ import userRoutes from "./user.routes";
 import addressRoutes from "./address.routes";
 import cartRoutes from "./cart.routes";
 import paymentRoutes from "./payment.routes";
+import deliverySlotRoutes from "./deliverySlot.routes";
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use("/users", userRoutes);
 router.use("/address", addressRoutes);
 router.use("/cart", cartRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/delivery-slots", deliverySlotRoutes);
 
 export default router;
