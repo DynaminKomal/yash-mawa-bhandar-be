@@ -54,3 +54,18 @@ export const updatePasswordController = grasp(
         sendResponse(res, 201, "success", "Password updated successfully", null);
     }
 );
+
+export const getAllUsersController = grasp(
+    async (req: Request, res: Response) => {
+        const { page, limit, search, role, isActive } = req.query;
+        const response = await userService.getAllUsersService({
+            page: page ? Number(page) : 1,
+            limit: limit ? Number(limit) : 10,
+            search: search ? String(search) : "",
+            role: role ? String(role) : undefined,
+            isActive: isActive ? String(isActive) : undefined,
+        });
+
+        sendResponse(res, 200, "success", "Users fetched successfully", response);
+    }
+);

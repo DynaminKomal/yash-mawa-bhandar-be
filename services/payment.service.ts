@@ -260,21 +260,13 @@ export const getAllOrdersService = async ({
         paymentMethod !== undefined &&
         paymentMethod !== ""
     ) {
-        query.paymentMethod = paymentMethod;
+        query.paymentMethod = Number(paymentMethod);
     }
 
     const [orders, totalOrders] = await Promise.all([
         Order.find(query)
-            .select({
-                items: 1,
-                paymentStatus: 1,
-                paymentMethod: 1,
-                orderStatus: 1,
-                finalAmount: 1,
-                invoiceUrl: 1,
-                invoicePublicId: 1,
-                createdAt: 1,
-            })
+            .populate("user", "userName name email phoneNumber phone")
+            .populate("deliveryAddress")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
@@ -283,30 +275,44 @@ export const getAllOrdersService = async ({
         Order.countDocuments(query),
     ]);
 
-    const formattedOrders = orders.map((order) => ({
-        orderId: order._id,
+    const formattedOrders = orders.map((order: any) => {
+        const userName = order.user?.userName || order.user?.name || order.deliveryAddress?.fullName || "N/A";
+        const userPhone = order.user?.phoneNumber || order.user?.phone || order.deliveryAddress?.phone || "N/A";
+        const userEmail = order.user?.email || "N/A";
 
-        itemsCount: order.items?.length ?? 0,
-
-        paymentStatus: order.paymentStatus,
-
-        paymentMethod: order.paymentMethod,
-
-        orderStatus: order.orderStatus,
-
-        finalAmount: order.finalAmount,
-
-        invoice: {
-            invoiceId: order.invoicePublicId,
-            invoiceUrl: order.invoiceUrl,
-        },
-
-        createdAt: order.createdAt,
-    }));
+        return {
+            orderId: order._id,
+            itemsCount: order.items?.length ?? 0,
+            items: order.items || [],
+            user: {
+                _id: order.user?._id || null,
+                name: userName,
+                email: userEmail,
+                phoneNumber: userPhone,
+            },
+            deliveryAddress: order.deliveryAddress || null,
+            deliverySlot: order.deliverySlot || null,
+            subtotal: order.subtotal || 0,
+            gstAmount: order.gstAmount || 0,
+            shippingCharge: order.shippingCharge || 0,
+            paymentStatus: order.paymentStatus,
+            paymentMethod: order.paymentMethod,
+            orderStatus: order.orderStatus,
+            finalAmount: order.finalAmount,
+            cancelReason: order.cancelReason || null,
+            cancelledAt: order.cancelledAt || null,
+            paidAt: order.paidAt || null,
+            deliveredAt: order.deliveredAt || null,
+            invoice: {
+                invoiceId: order.invoicePublicId,
+                invoiceUrl: order.invoiceUrl,
+            },
+            createdAt: order.createdAt,
+        };
+    });
 
     return {
         orders: formattedOrders,
-
         pagination: {
             totalOrders,
             totalPages: Math.ceil(totalOrders / limit),
@@ -314,6 +320,43 @@ export const getAllOrdersService = async ({
             limit,
         },
     };
+};
+
+export interface UpdateOrderStatusPayload {
+    orderId: string;
+    orderStatus: number;
+    cancelReason?: string;
+}
+
+export const updateOrderStatusService = async ({
+    orderId,
+    orderStatus,
+    cancelReason,
+}: UpdateOrderStatusPayload) => {
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new Error("Order not found.");
+    }
+
+    const targetStatus = Number(orderStatus);
+    order.orderStatus = targetStatus;
+
+    if (targetStatus === orderStatusEnum.CANCELLED) {
+        order.cancelledAt = new Date();
+        if (cancelReason?.trim()) {
+            order.cancelReason = cancelReason.trim();
+        }
+    } else if (targetStatus === orderStatusEnum.DELIVERED) {
+        order.deliveredAt = new Date();
+        order.paymentStatus = paymentStatusEnum.PAID;
+        if (!order.paidAt) {
+            order.paidAt = new Date();
+        }
+    }
+
+    await order.save();
+
+    return order;
 };
 
 

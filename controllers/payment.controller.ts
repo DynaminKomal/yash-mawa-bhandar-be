@@ -147,3 +147,29 @@ export const cancelOrderController = grasp(
         );
     }
 );
+
+export const updateOrderStatusController = grasp(
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { orderStatus, cancelReason } = req.body;
+
+        if (orderStatus === undefined) {
+            return sendResponse(res, 400, "error", "orderStatus is required.");
+        }
+
+        const orderIdStr = Array.isArray(id) ? id[0] : String(id);
+        const response = await paymentService.updateOrderStatusService({
+            orderId: orderIdStr,
+            orderStatus: Number(orderStatus),
+            cancelReason,
+        });
+
+        sendResponse(
+            res,
+            200,
+            "success",
+            "Order status updated successfully",
+            response
+        );
+    }
+);

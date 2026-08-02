@@ -63,3 +63,50 @@ export const tokenVerify = grasp(
         }
     }
 );
+
+export const optionalTokenVerify = grasp(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        let token: string | undefined;
+
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith("Bearer")
+        ) {
+            token = req.headers.authorization.split(" ")[1];
+        }
+
+        if (!token) {
+            return next();
+        }
+
+        try {
+            const decodedToken = jwt.verify(
+                token,
+                process.env.JWT_SECRET as string
+            ) as DecodedToken;
+
+            const userExist = await Users.findById(decodedToken.id);
+            if (userExist) {
+                req.user = userExist;
+            }
+        } catch (error) {
+            // Silence optional token parse errors for public APIs
+        }
+
+        return next();
+    }
+);
+
+export const adminVerify = grasp(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        if (!req.user || req.user.role !== "admin") {
+            return sendResponse(
+                res,
+                403,
+                "fail",
+                "Access denied. Admin privileges required."
+            );
+        }
+        return next();
+    }
+);

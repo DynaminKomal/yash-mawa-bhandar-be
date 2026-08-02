@@ -87,5 +87,59 @@ export const updatePassword = async (data: any) => {
     }
     user.password = data.newPassword;
     await user.save();
+};
 
+export interface GetUsersParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    isActive?: string | boolean;
+}
+
+export const getAllUsersService = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    role,
+    isActive,
+}: GetUsersParams) => {
+    const skip = (page - 1) * limit;
+    const query: Record<string, any> = {};
+
+    if (search?.trim()) {
+        query.$or = [
+            { userName: { $regex: search.trim(), $options: "i" } },
+            { email: { $regex: search.trim(), $options: "i" } },
+            { phoneNumber: { $regex: search.trim(), $options: "i" } },
+        ];
+    }
+
+    if (role && role !== "all") {
+        query.role = role;
+    }
+
+    if (isActive !== undefined && isActive !== "" && isActive !== "all") {
+        query.isActive = isActive === "true" || isActive === true;
+    }
+
+    const [users, totalUsers] = await Promise.all([
+        Users.find(query)
+            .select("-password")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Users.countDocuments(query),
+    ]);
+
+    return {
+        users,
+        pagination: {
+            totalUsers,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: page,
+            limit,
+        },
+    };
 };
