@@ -12,6 +12,7 @@ import {
 } from "../types/order.enum";
 import { GetOrdersParams } from "../types/payment.type";
 import { sendOrderEmailToAdmin } from "../utility/mail";
+import Notification from "../models/notification.model";
 
 const CANCEL_WINDOW_MS =
     3 * 60 * 60 * 1000;
@@ -205,6 +206,18 @@ export const verifyPaymentService =
                 invoiceUrl: invoiceData.url,
                 event: "created",
             });
+
+            // Create Admin Notification for new order
+            try {
+                await Notification.create({
+                    title: "New Order Placed",
+                    message: `New order #${order._id} of ₹${order.finalAmount} placed.`,
+                    type: "order",
+                    referenceId: order._id.toString(),
+                });
+            } catch (err) {
+                console.error("Error creating Notification for order:", err);
+            }
             await Cart.findOneAndUpdate(
                 { user },
                 {

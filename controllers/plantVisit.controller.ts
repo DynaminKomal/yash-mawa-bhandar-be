@@ -3,10 +3,24 @@ import * as plantVisitService from "../services/plantVisit.service";
 import { Request, Response } from "express";
 import { IdParams } from "../types/request.types";
 import { sendAdminNotification, sendPlantVisitStatusEmail } from "../utility/mail";
+import Notification from "../models/notification.model";
 
 export const bookPlanVisit = grasp(async (req: Request, res: Response) => {
     const plantRequest = await plantVisitService.createPlantVisitRequest(req.validatedBody);
     await sendAdminNotification(plantRequest);
+
+    // Create Notification in DB for Admin Portal
+    try {
+        await Notification.create({
+            title: "New Plant Visit Request",
+            message: `New visit request from ${plantRequest.userName} (${plantRequest.company}) for ${plantRequest.numberVisitor} visitor(s).`,
+            type: "plant_visit",
+            referenceId: plantRequest._id ? plantRequest._id.toString() : plantRequest.visitId,
+        });
+    } catch (err) {
+        console.error("Error creating Notification for plant visit:", err);
+    }
+
     sendResponse(res, 201, "success", "Book Plant Visit created", plantRequest);
 });
 

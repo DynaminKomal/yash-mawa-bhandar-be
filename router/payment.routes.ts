@@ -15,12 +15,12 @@ import { mongoIdSchema } from "../validator/common.config";
 
 const router = Router();
 
-router.get("/orders", validate(getOrderSchema, "query"), getAllOrdersController);
-router.patch("/orders/:id/status", validate(mongoIdSchema, "params"), updateOrderStatusController);
 router.use(tokenVerify);
 
 router.post("/create-razorpay-order", createRazorpayOrderController);
+router.patch("/orders/:id/status", validate(mongoIdSchema, "params"), updateOrderStatusController);
 
+router.get("/orders", validate(getOrderSchema, "query"), getAllOrdersController);
 router.post("/verify-payment", verifyPaymentController);
 
 router.get("/generate-invoice/:orderId", generateInvoiceController);
