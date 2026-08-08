@@ -43,44 +43,35 @@ async function disconnectDB(): Promise<void> {
  */
 async function updateProductModel(): Promise<void> {
   console.log("\n📦 --- Updating Product Model ---");
+
+  await updateCustomCollectionData(
+    "products",
+    { isDeleted: { $exists: false } },
+    { $set: { isDeleted: false } }
+  );
+
+  await updateCustomCollectionData(
+    "products",
+    { isActive: { $exists: false } },
+    { $set: { isActive: true } }
+  );
+
+  await updateCustomCollectionData(
+    "products",
+    { inStock: { $exists: false } },
+    { $set: { inStock: true } }
+  );
+
   const products = await Product.find({});
-  console.log(`Found ${products.length} products to check.`);
+  console.log(`Checking ${products.length} products for missing codes...`);
 
   let updatedCount = 0;
 
   for (const prod of products) {
-    let modified = false;
-
-    // Check code field
     if (!prod.code && prod.name) {
       const generatedCode = prod.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       console.log(`  [Product ${prod._id}] Setting missing code -> "${generatedCode}"`);
       prod.code = generatedCode;
-      modified = true;
-    }
-
-    // Check isDeleted field
-    if (prod.isDeleted === undefined || prod.isDeleted === null) {
-      console.log(`  [Product ${prod._id}] Setting isDeleted -> false`);
-      prod.isDeleted = false;
-      modified = true;
-    }
-
-    // Check isActive field
-    if (prod.isActive === undefined || prod.isActive === null) {
-      console.log(`  [Product ${prod._id}] Setting isActive -> true`);
-      prod.isActive = true;
-      modified = true;
-    }
-
-    // Check inStock field
-    if (prod.inStock === undefined || prod.inStock === null) {
-      console.log(`  [Product ${prod._id}] Setting inStock -> true`);
-      prod.inStock = true;
-      modified = true;
-    }
-
-    if (modified) {
       updatedCount++;
       if (!isDryRun) {
         await prod.save();
@@ -88,7 +79,7 @@ async function updateProductModel(): Promise<void> {
     }
   }
 
-  console.log(`✨ Product model check complete. ${updatedCount} document(s) ${isDryRun ? "would be updated (DRY RUN)" : "updated"}.`);
+  console.log(`✨ Product model check complete. ${updatedCount} code field(s) ${isDryRun ? "would be updated (DRY RUN)" : "updated"}.`);
 }
 
 /**
@@ -97,53 +88,38 @@ async function updateProductModel(): Promise<void> {
  */
 async function updateUserModel(): Promise<void> {
   console.log("\n👤 --- Updating User Model ---");
-  const users = await User.find({});
-  console.log(`Found ${users.length} users to check.`);
 
-  let updatedCount = 0;
+  await updateCustomCollectionData(
+    "users",
+    { profile: { $exists: false } },
+    { $set: { profile: "" } }
+  );
 
-  for (const user of users) {
-    let modified = false;
+  await updateCustomCollectionData(
+    "users",
+    { fcmToken: { $exists: false } },
+    { $set: { fcmToken: "" } }
+  );
 
-    if (user.profile === undefined || user.profile === null) {
-      console.log(`  [User ${user._id}] Setting profile -> ""`);
-      user.profile = "";
-      modified = true;
-    }
+  await updateCustomCollectionData(
+    "users",
+    { isActive: { $exists: false } },
+    { $set: { isActive: true } }
+  );
 
-    if (user.fcmToken === undefined || user.fcmToken === null) {
-      console.log(`  [User ${user._id}] Setting fcmToken -> ""`);
-      user.fcmToken = "";
-      modified = true;
-    }
+  await updateCustomCollectionData(
+    "users",
+    { isVerified: { $exists: false } },
+    { $set: { isVerified: false } }
+  );
 
-    if (user.isActive === undefined || user.isActive === null) {
-      console.log(`  [User ${user._id}] Setting isActive -> true`);
-      user.isActive = true;
-      modified = true;
-    }
+  await updateCustomCollectionData(
+    "users",
+    { role: { $exists: false } },
+    { $set: { role: "customer" } }
+  );
 
-    if (user.isVerified === undefined || user.isVerified === null) {
-      console.log(`  [User ${user._id}] Setting isVerified -> false`);
-      user.isVerified = false;
-      modified = true;
-    }
-
-    if (!user.role) {
-      console.log(`  [User ${user._id}] Setting role -> "customer"`);
-      user.role = "customer";
-      modified = true;
-    }
-
-    if (modified) {
-      updatedCount++;
-      if (!isDryRun) {
-        await user.save();
-      }
-    }
-  }
-
-  console.log(`✨ User model check complete. ${updatedCount} document(s) ${isDryRun ? "would be updated (DRY RUN)" : "updated"}.`);
+  console.log(`✨ User model check complete.`);
 }
 
 /**
@@ -151,28 +127,23 @@ async function updateUserModel(): Promise<void> {
  */
 async function updateCategoryModel(): Promise<void> {
   console.log("\n🏷️ --- Updating Category Model ---");
+
+  await updateCustomCollectionData(
+    "categories",
+    { isActive: { $exists: false } },
+    { $set: { isActive: true } }
+  );
+
   const categories = await Category.find({});
-  console.log(`Found ${categories.length} categories to check.`);
+  console.log(`Checking ${categories.length} categories for missing codes...`);
 
   let updatedCount = 0;
 
   for (const cat of categories) {
-    let modified = false;
-
     if (!cat.code && cat.name) {
       const generatedCode = cat.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       console.log(`  [Category ${cat._id}] Setting missing code -> "${generatedCode}"`);
       cat.code = generatedCode;
-      modified = true;
-    }
-
-    if (cat.isActive === undefined || cat.isActive === null) {
-      console.log(`  [Category ${cat._id}] Setting isActive -> true`);
-      cat.isActive = true;
-      modified = true;
-    }
-
-    if (modified) {
       updatedCount++;
       if (!isDryRun) {
         await cat.save();
@@ -180,7 +151,7 @@ async function updateCategoryModel(): Promise<void> {
     }
   }
 
-  console.log(`✨ Category model check complete. ${updatedCount} document(s) ${isDryRun ? "would be updated (DRY RUN)" : "updated"}.`);
+  console.log(`✨ Category model check complete. ${updatedCount} code field(s) ${isDryRun ? "would be updated (DRY RUN)" : "updated"}.`);
 }
 
 /**
