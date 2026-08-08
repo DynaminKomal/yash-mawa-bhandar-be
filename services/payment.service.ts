@@ -11,8 +11,9 @@ import {
     paymentStatusEnum,
 } from "../types/order.enum";
 import { GetOrdersParams } from "../types/payment.type";
-import { sendOrderEmailToAdmin } from "../utility/mail";
+import { sendOrderEmailToAdmin, sendOrderStatusEmailToCustomer } from "../utility/mail";
 import Notification from "../models/notification.model";
+import { sendAdminFCMNotification } from "../utility/fcm";
 
 const CANCEL_WINDOW_MS =
     3 * 60 * 60 * 1000;
@@ -215,8 +216,18 @@ export const verifyPaymentService =
                     type: "order",
                     referenceId: order._id.toString(),
                 });
+
+                // Send FCM Push Notification to Admin devices
+                await sendAdminFCMNotification({
+                    title: "📦 New Order Placed!",
+                    body: `Order #${order._id} for ₹${order.finalAmount} has been placed.`,
+                    data: {
+                        orderId: order._id.toString(),
+                        type: "order",
+                    },
+                });
             } catch (err) {
-                console.error("Error creating Notification for order:", err);
+                console.error("Error creating/sending Notification for order:", err);
             }
             await Cart.findOneAndUpdate(
                 { user },
@@ -346,7 +357,7 @@ export const updateOrderStatusService = async ({
     orderStatus,
     cancelReason,
 }: UpdateOrderStatusPayload) => {
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate("user", "userName email name phoneNumber");
     if (!order) {
         throw new Error("Order not found.");
     }
@@ -368,6 +379,29 @@ export const updateOrderStatusService = async ({
     }
 
     await order.save();
+
+    // Trigger email notification to customer on order status update
+    try {
+        const userObj: any = order.user;
+        const userEmail = userObj?.email;
+        const userName = userObj?.userName || userObj?.name || "Valued Customer";
+
+        if (userEmail) {
+            sendOrderStatusEmailToCustomer({
+                order,
+                userEmail,
+                userName,
+                status: targetStatus,
+                cancelReason,
+            }).catch((err) => {
+                console.error("Async customer order status email error:", err);
+            });
+        } else {
+            console.warn(`No user email found for order ${orderId}, status email skipped.`);
+        }
+    } catch (emailErr) {
+        console.error("Failed to initiate order status email:", emailErr);
+    }
 
     return order;
 };

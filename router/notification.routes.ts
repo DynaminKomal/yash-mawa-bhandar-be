@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/", tokenVerify, notificationController.getNotifications);
 router.patch("/mark-read", tokenVerify, notificationController.markNotificationsAsRead);
+router.delete("/:id", tokenVerify, notificationController.deleteNotification);
 
 export default router;
 

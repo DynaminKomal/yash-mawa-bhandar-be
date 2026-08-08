@@ -10,6 +10,7 @@ export interface IUser extends Document {
     gender?: "male" | "female" | "other";
     dateOfBirth?: Date;
     role: "customer" | "admin";
+    fcmToken?: string;
     isActive: boolean;
     isVerified: boolean;
     createdAt: Date;
@@ -59,6 +60,11 @@ const userSchema = new Schema(
             type: String,
             enum: ["customer", "admin"],
             default: "customer",
+        },
+
+        fcmToken: {
+            type: String,
+            default: "",
         },
 
         isActive: {

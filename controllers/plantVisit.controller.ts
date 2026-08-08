@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { IdParams } from "../types/request.types";
 import { sendAdminNotification, sendPlantVisitStatusEmail } from "../utility/mail";
 import Notification from "../models/notification.model";
+import { sendAdminFCMNotification } from "../utility/fcm";
 
 export const bookPlanVisit = grasp(async (req: Request, res: Response) => {
     const plantRequest = await plantVisitService.createPlantVisitRequest(req.validatedBody);
@@ -17,8 +18,18 @@ export const bookPlanVisit = grasp(async (req: Request, res: Response) => {
             type: "plant_visit",
             referenceId: plantRequest._id ? plantRequest._id.toString() : plantRequest.visitId,
         });
+
+        // Send FCM Push Notification to Admin devices
+        await sendAdminFCMNotification({
+            title: "🌱 New Plant Visit Request",
+            body: `New visit request from ${plantRequest.userName} (${plantRequest.company}) for ${plantRequest.numberVisitor} visitor(s).`,
+            data: {
+                visitId: plantRequest._id ? plantRequest._id.toString() : plantRequest.visitId,
+                type: "plant_visit",
+            },
+        });
     } catch (err) {
-        console.error("Error creating Notification for plant visit:", err);
+        console.error("Error creating/sending Notification for plant visit:", err);
     }
 
     sendResponse(res, 201, "success", "Book Plant Visit created", plantRequest);
