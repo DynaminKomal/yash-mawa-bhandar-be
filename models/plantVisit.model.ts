@@ -11,6 +11,7 @@ export interface IPlantVisit extends Document {
     visitId: string;
     status: "pending" | "approved" | "rejected";
     notes?: string;
+    isDeleted?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const plantVisitSchema = new Schema(
         },
 
         notes: String,
+        isDeleted: { type: Boolean, default: false, index: true },
     },
     { timestamps: true }
 );

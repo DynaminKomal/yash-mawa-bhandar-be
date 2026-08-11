@@ -75,14 +75,25 @@ export const createProductSchema = z.object({
         message: "Unit type must be kg, pack, or liter",
     }),
 
-    inStock: z
-        .coerce.boolean()
-        .optional(),
+    inStock: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null || val === "") return undefined;
+            if (val === "false" || val === false || val === "0" || val === 0) return false;
+            if (val === "true" || val === true || val === "1" || val === 1) return true;
+            return Boolean(val);
+        },
+        z.boolean()
+    ).optional(),
 
-    isActive: z
-        .coerce.boolean()
-        .optional(),
-
+    isActive: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null || val === "") return undefined;
+            if (val === "false" || val === false || val === "0" || val === 0) return false;
+            if (val === "true" || val === true || val === "1" || val === 1) return true;
+            return Boolean(val);
+        },
+        z.boolean()
+    ).optional(),
 }).strict();
 
 export const updateProductSchema = z.object({
@@ -91,8 +102,8 @@ export const updateProductSchema = z.object({
     category: z.string().optional(),
     price: z.preprocess(
         (val) => (val === "" ? undefined : Number(val)),
-        z.number().positive().optional()
-    ),
+        z.number().positive()
+    ).optional(),
     hsnCode: z
         .string()
         .min(1).optional(),
@@ -105,8 +116,7 @@ export const updateProductSchema = z.object({
             .number()
             .min(0, "GST Rate cannot be negative")
             .max(100, "GST Rate cannot exceed 100")
-            .optional()
-    ),
+    ).optional(),
     image: imageSchema.optional(),
     unitType: z.enum([
         UnitType.KG,
@@ -115,17 +125,51 @@ export const updateProductSchema = z.object({
     ], {
         message: "Unit type must be kg, pack, or liter",
     }),
-    inStock: z.coerce.boolean().optional(),
-    isActive: z.coerce.boolean().optional(),
+    inStock: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null || val === "") return undefined;
+            if (val === "false" || val === false || val === "0" || val === 0) return false;
+            if (val === "true" || val === true || val === "1" || val === 1) return true;
+            return Boolean(val);
+        },
+        z.boolean()
+    ).optional(),
+    isActive: z.preprocess(
+        (val) => {
+            if (val === undefined || val === null || val === "") return undefined;
+            if (val === "false" || val === false || val === "0" || val === 0) return false;
+            if (val === "true" || val === true || val === "1" || val === 1) return true;
+            return Boolean(val);
+        },
+        z.boolean()
+    ).optional(),
 }).partial().strict();
 
 export const getProductListSchema = z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).default(6),
+    page: z.preprocess(
+        (val) => (val === undefined || val === null || val === "" ? 1 : Number(val)),
+        z.number().min(1)
+    ).default(1),
+    limit: z.preprocess(
+        (val) => (val === undefined || val === null || val === "" ? 6 : Number(val)),
+        z.number().min(1)
+    ).default(6),
     search: z.string().optional(),
     category: z.string().optional(),
     sort: z.string().optional(),
-}).strict();
+    isAdmin: z.preprocess(
+        (val) => (val === "true" || val === true ? true : val === "false" || val === false ? false : undefined),
+        z.boolean()
+    ).optional(),
+    isActive: z.preprocess(
+        (val) => (val === "true" || val === true ? true : val === "false" || val === false ? false : undefined),
+        z.boolean()
+    ).optional(),
+    inStock: z.preprocess(
+        (val) => (val === "true" || val === true ? true : val === "false" || val === false ? false : undefined),
+        z.boolean()
+    ).optional(),
+}).passthrough();
 
 export const idParamSchema = z.object({
     id: z.string().min(1),

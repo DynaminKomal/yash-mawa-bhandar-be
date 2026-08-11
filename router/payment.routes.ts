@@ -6,6 +6,7 @@ import {
     createRazorpayOrderController,
     generateInvoiceController,
     getAllOrdersController,
+    updateOrderStatusController,
     verifyPaymentController,
 } from "../controllers/payment.controller";
 import { validate } from "../validator/validate";
@@ -17,11 +18,12 @@ const router = Router();
 router.use(tokenVerify);
 
 router.post("/create-razorpay-order", createRazorpayOrderController);
+router.patch("/orders/:id/status", validate(mongoIdSchema, "params"), updateOrderStatusController);
 
+router.get("/orders", validate(getOrderSchema, "query"), getAllOrdersController);
 router.post("/verify-payment", verifyPaymentController);
 
 router.get("/generate-invoice/:orderId", generateInvoiceController);
-router.get("/orders", validate(getOrderSchema, "query"), getAllOrdersController);
 router.post("/orders/:id/cancel", validate(mongoIdSchema, "params"),
     validate(cancelBodySchema, "body"), cancelOrderController);
 

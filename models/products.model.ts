@@ -13,6 +13,7 @@ export interface IProduct extends Document {
     hsnCode: string;
     gstRate: number;
     isActive: boolean;
+    isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -67,6 +68,10 @@ const productSchema = new Schema<IProduct>(
         isActive: {
             type: Boolean,
             default: true,
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true }

@@ -14,7 +14,7 @@ router.post(
 
 router.get(
     "/",
-    validate(getProductListSchema, "query"),
+    validate(getProductListSchema, "query", false),
     getProductList
 );
 

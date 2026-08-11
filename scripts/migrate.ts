@@ -67,6 +67,7 @@ const productSchema = new mongoose.Schema(
         images: [String],
         price: Number,
         inStock: Boolean,
+        isDeleted: Boolean,
         isActive: Boolean,
     },
     {
@@ -123,22 +124,45 @@ async function migrate() {
 
         for (const cat of categories) {
             try {
-                const newCategory = await NewCategory.create({
-                    name: cat.name,
+                const catCode = cat.code || cat.name;
 
-                    code: `${cat.code || cat.name}-${new mongoose.Types.ObjectId()}`,
-
-                    description: cat.description,
-
-                    image: cat.image,
-
-                    isActive: cat.isActive,
+                let existingCategory = await NewCategory.findOne({
+                    $or: [
+                        { _id: cat._id },
+                        { code: catCode },
+                        { name: cat.name }
+                    ]
                 });
 
-                categoryMap.set(
-                    cat._id.toString(),
-                    newCategory._id
-                )
+                if (existingCategory) {
+                    existingCategory.name = cat.name;
+                    existingCategory.code = catCode;
+                    existingCategory.description = cat.description;
+                    existingCategory.image = cat.image;
+                    if (cat.isActive !== undefined) existingCategory.isActive = cat.isActive;
+                    await existingCategory.save();
+                    console.log(`Updated Category: ${cat.name}`);
+
+                    categoryMap.set(
+                        cat._id.toString(),
+                        existingCategory._id as mongoose.Types.ObjectId
+                    );
+                } else {
+                    const newCategory = await NewCategory.create({
+                        _id: cat._id,
+                        name: cat.name,
+                        code: catCode,
+                        description: cat.description,
+                        image: cat.image,
+                        isActive: cat.isActive,
+                    });
+                    console.log(`Created Category: ${cat.name}`);
+
+                    categoryMap.set(
+                        cat._id.toString(),
+                        newCategory._id as mongoose.Types.ObjectId
+                    );
+                }
             } catch (err) {
                 console.error(
                     `Category Failed: ${cat.name}`
@@ -149,8 +173,7 @@ async function migrate() {
         }
 
         const products = await OldProduct.find({});
-        
-        await NewProduct.deleteMany({});
+
         console.log(`Found ${products.length} products`);
 
         for (const prod of products) {
@@ -160,29 +183,49 @@ async function migrate() {
                         prod.category?.toString()
                     );
 
-                await NewProduct.create({
-                    name: prod.name,
+                const prodCode = prod.code || prod.name;
 
-                    code: `${prod.code || prod.name}-${new mongoose.Types.ObjectId()}`,
-
-                    description: prod.description,
-
-                    category:
-                        mappedCategory || prod.category,
-
-                    images: prod.images || [],
-
-                    price: prod.price || 0,
-                    hsnCode: prod.hsnCode,
-
-                    gstRate: prod.gstRate ?? 0,
-
-                    unitType: prod.unitType,
-
-                    inStock: prod.inStock,
-
-                    isActive: prod.isActive,
+                let existingProduct = await NewProduct.findOne({
+                    $or: [
+                        { _id: prod._id },
+                        { code: prodCode },
+                        { name: prod.name }
+                    ]
                 });
+
+                if (existingProduct) {
+                    existingProduct.name = prod.name;
+                    existingProduct.code = prodCode;
+                    existingProduct.description = prod.description;
+                    existingProduct.category = mappedCategory || prod.category;
+                    existingProduct.images = prod.images || [];
+                    existingProduct.price = prod.price ?? 0;
+                    existingProduct.hsnCode = prod.hsnCode;
+                    existingProduct.gstRate = prod.gstRate ?? 0;
+                    existingProduct.unitType = prod.unitType;
+                    if (prod.inStock !== undefined) existingProduct.inStock = prod.inStock;
+                    if (prod.isDeleted !== undefined) existingProduct.isDeleted = prod.isDeleted;
+                    if (prod.isActive !== undefined) existingProduct.isActive = prod.isActive;
+                    await existingProduct.save();
+                    console.log(`Updated Product: ${prod.name}`);
+                } else {
+                    await NewProduct.create({
+                        _id: prod._id,
+                        name: prod.name,
+                        code: prodCode,
+                        description: prod.description,
+                        category: mappedCategory || prod.category,
+                        images: prod.images || [],
+                        price: prod.price ?? 0,
+                        hsnCode: prod.hsnCode,
+                        gstRate: prod.gstRate ?? 0,
+                        unitType: prod.unitType,
+                        inStock: prod.inStock,
+                        isDeleted: prod.isDeleted,
+                        isActive: prod.isActive,
+                    });
+                    console.log(`Created Product: ${prod.name}`);
+                }
             } catch (err) {
                 console.error(
                     `Product Failed: ${prod.name}`

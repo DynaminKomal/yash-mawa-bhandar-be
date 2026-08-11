@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --ext .ts,.js"
+    "lint": "eslint . --ext .ts,.js",
+    "update:prod": "ts-node scripts/updateProdModel.ts"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
     "express-mongo-sanitize": "^2.2.0",
+    "firebase-admin": "^14.2.0",
     "flatted": "^3.4.2",
     "joi": "^18.1.2",
     "jsonwebtoken": "^9.0.3",

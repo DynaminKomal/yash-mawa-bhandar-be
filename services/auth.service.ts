@@ -1,5 +1,6 @@
 import Address from "../models/address.model";
 import Users from "../models/users.model";
+import { sendWelcomeEmail } from "../utility/mail";
 
 export const signup = async (data: any) => {
     try {
@@ -44,7 +45,12 @@ export const signup = async (data: any) => {
             isDefault: true,
         });
 
-        return user
+        // Trigger welcome email asynchronously
+        sendWelcomeEmail(user.email, user.userName).catch((emailErr) => {
+            console.error("[Auth Service] Failed to send welcome email:", emailErr);
+        });
+
+        return user;
 
     } catch (error) {
         throw error;
