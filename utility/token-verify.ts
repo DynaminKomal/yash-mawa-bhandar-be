@@ -1,15 +1,12 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { AuthRequest } from "../types/express.d";
 import { grasp, sendResponse } from "./response-utility";
 import Users from "../models/users.model";
 
 interface DecodedToken extends JwtPayload {
     id: string;
     iat: number;
-}
-
-interface AuthRequest extends Request {
-    user?: any;
 }
 export const tokenVerify = grasp(
     async (req: AuthRequest, res: Response, next: NextFunction) => {

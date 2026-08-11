@@ -2,11 +2,7 @@ import { UploadedFile } from "express-fileupload";
 import * as userService from "../services/user.service";
 import { grasp, sendResponse } from "../utility/response-utility";
 import { Request, Response } from "express";
-
-interface AuthRequest extends Request {
-    user?: any;
-    files?: any;
-}
+import { AuthRequest } from "../types/express.d";
 
 export const updateUserProfileController = grasp(
     async (req: AuthRequest, res: Response) => {

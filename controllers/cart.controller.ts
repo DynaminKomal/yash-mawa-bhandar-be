@@ -1,10 +1,7 @@
 import { grasp, sendResponse } from "../utility/response-utility";
 import * as cartService from "../services/cart.service";
 import { Request, Response } from "express";
-
-interface AuthRequest extends Request {
-    user?: any;
-}
+import { AuthRequest } from "../types/express.d";
 
 export const createCartItemController = grasp(
     async (req: AuthRequest, res: Response) => {

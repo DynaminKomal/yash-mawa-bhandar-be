@@ -1,14 +1,10 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../types/express.d";
 import { grasp, sendResponse } from "../utility/response-utility";
 import * as paymentService from "../services/payment.service";
 import Order from "../models/order.model";
 import { generateInvoicePdf } from "../services/invoice.service";
 import { GetOrdersParams } from "../types/payment.type";
-
-interface AuthRequest
-    extends Request {
-    user?: any;
-}
 
 export const createRazorpayOrderController =
     grasp(
