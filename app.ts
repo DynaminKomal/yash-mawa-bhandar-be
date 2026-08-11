@@ -31,7 +31,9 @@ const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "https://www.yashmawabhandar.com",
-    "https://yashmawabhandar.com"
+    "https://yashmawabhandar.com",
+    "https://admin-yash-mawa-bhandar.com",
+    "https://www.admin-yash-mawa-bhandar.com"
 ];
 
 
