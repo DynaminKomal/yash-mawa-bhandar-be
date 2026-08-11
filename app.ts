@@ -33,21 +33,27 @@ const allowedOrigins = [
     "https://www.yashmawabhandar.com",
     "https://yashmawabhandar.com",
     "https://admin-yash-mawa-bhandar.com",
-    "https://www.admin-yash-mawa-bhandar.com"
+    "https://www.admin-yash-mawa-bhandar.com",
+    "http://admin-yash-mawa-bhandar.com",
+    "http://www.admin-yash-mawa-bhandar.com"
 ];
-
 
 // Enable CORS
 app.use(
     cors({
         origin: function (origin, callback) {
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                callback(new Error(`Not allowed by CORS ${origin}`));
+            if (!origin) return callback(null, true);
+            const cleanOrigin = origin.replace(/\/$/, "");
+            if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes(origin)) {
+                return callback(null, true);
             }
+            console.warn(`CORS blocked request from origin: ${origin}`);
+            return callback(null, false);
         },
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+        optionsSuccessStatus: 200
     })
 );
 
