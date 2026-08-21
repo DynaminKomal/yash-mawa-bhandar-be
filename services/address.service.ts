@@ -28,6 +28,8 @@ export const createAddress = async (
             pincode: data.address.pincode,
             landmark: data.address.landmark,
             addressType: data.address.addressType,
+            latitude: data.address.latitude,
+            longitude: data.address.longitude,
             isDefault: true,
         });
 
@@ -72,7 +74,9 @@ export const updateAddress = async (addressId: string, data: any) => {
         "state",
         "pincode",
         "landmark",
-        "addressType"
+        "addressType",
+        "latitude",
+        "longitude"
     ];
     for (const field of directFields) {
         if (data[field] !== undefined) {
@@ -88,7 +92,9 @@ export const updateAddress = async (addressId: string, data: any) => {
             "state",
             "pincode",
             "landmark",
-            "addressType"
+            "addressType",
+            "latitude",
+            "longitude"
         ];
         for (const field of addressFields) {
             if (data.address[field] !== undefined) {
