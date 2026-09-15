@@ -32,6 +32,9 @@ export const addressSchema = z.object({
         .optional(),
 
     addressType: z.enum(["home", "work", "other"]).optional(),
+
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
 });
 
 export const createNewAddress = z.object({

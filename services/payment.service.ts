@@ -2,6 +2,13 @@ import crypto from "crypto";
 import { razorpayInstance } from "../utility/razorpay";
 import Cart from "../models/cart.model";
 import Order from "../models/order.model";
+import Address from "../models/address.model";
+import {
+    calculateHaversineDistance,
+    calculateMinOrderWeight,
+    calculateCartTotalWeightInKg,
+    geocodeAddressOrPincode,
+} from "../utility/distance.utility";
 import { generateInvoicePdf } from "./invoice.service";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -79,6 +86,44 @@ export const verifyPaymentService =
                 throw new Error(
                     "Cart is empty"
                 );
+            }
+
+            // Distance & Minimum Order Weight Validation
+            let addrObj: any = null;
+            if (typeof deliveryAddress === "string") {
+                addrObj = await Address.findById(deliveryAddress);
+            } else if (deliveryAddress && typeof deliveryAddress === "object") {
+                addrObj = deliveryAddress._id ? await Address.findById(deliveryAddress._id) || deliveryAddress : deliveryAddress;
+            }
+
+            if (addrObj) {
+                let lat = addrObj.latitude;
+                let lng = addrObj.longitude;
+
+                if (typeof lat !== "number" || typeof lng !== "number") {
+                    const geo = await geocodeAddressOrPincode(addrObj.pincode, addrObj.city, addrObj.state, addrObj.addressLine1);
+                    if (geo) {
+                        lat = geo.latitude;
+                        lng = geo.longitude;
+                        if (addrObj._id && typeof addrObj.save === "function") {
+                            addrObj.latitude = lat;
+                            addrObj.longitude = lng;
+                            await addrObj.save().catch(() => {});
+                        }
+                    }
+                }
+
+                if (typeof lat === "number" && typeof lng === "number") {
+                    const distanceKm = calculateHaversineDistance(lat, lng);
+                    const requiredMinWeightKg = calculateMinOrderWeight(distanceKm);
+                    const totalCartWeightKg = calculateCartTotalWeightInKg(cart.items);
+
+                    if (totalCartWeightKg < requiredMinWeightKg) {
+                        throw new Error(
+                            `You can order from ${requiredMinWeightKg} kg for your delivery location.`
+                        );
+                    }
+                }
             }
 
             let paymentStatus =

@@ -17,6 +17,9 @@ export interface IAddress extends Document {
 
     addressType: "home" | "work" | "other";
 
+    latitude?: number;
+    longitude?: number;
+
     isDefault: boolean;
 }
 
@@ -61,6 +64,9 @@ const addressSchema = new Schema<IAddress>(
         },
 
         landmark: String,
+
+        latitude: Number,
+        longitude: Number,
 
         addressType: {
             type: String,
